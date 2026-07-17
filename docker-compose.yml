@@ -1,0 +1,19 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: math_rush
+      POSTGRES_USER: mathrush
+      POSTGRES_PASSWORD: mathrush
+    ports:
+      - "5433:5432"
+    volumes:
+      - math_rush_postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mathrush -d math_rush"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  math_rush_postgres:
