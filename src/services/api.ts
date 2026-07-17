@@ -1,6 +1,7 @@
 import { useGameStore, type Difficulty, type GameSettings } from '../store/useGameStore'
 
-const API_BASE = import.meta.env.VITE_API_URL ?? ''
+const API_BASE = import.meta.env.VITE_API_URL
+  ?? (import.meta.env.DEV ? '' : 'https://math-rush-api.onrender.com')
 const PENDING_RUNS_KEY = 'math-rush-pending-runs-v1'
 const DEVICE_ID_KEY = 'math-rush-device-id-v1'
 
