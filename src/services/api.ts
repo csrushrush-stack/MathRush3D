@@ -57,7 +57,9 @@ interface PendingRun {
 
 async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
   const controller = new AbortController()
-  const timeout = window.setTimeout(() => controller.abort(), 5_000)
+  // Render's free service can need close to a minute to wake after being idle.
+  // Keep the request alive long enough for that first mobile connection.
+  const timeout = window.setTimeout(() => controller.abort(), 75_000)
   try {
     const response = await fetch(`${API_BASE}${path}`, {
       ...init,
