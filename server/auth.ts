@@ -41,6 +41,11 @@ function readCookie(request: Request, name: string) {
 }
 
 export function readSessionToken(request: Request) {
+  const authorization = request.get('authorization')
+  if (authorization?.startsWith('Bearer ')) {
+    const token = authorization.slice('Bearer '.length).trim()
+    if (token) return token
+  }
   return readCookie(request, SESSION_COOKIE)
 }
 
@@ -55,6 +60,7 @@ export async function createSession(client: PoolClient, playerId: string, respon
     ...sessionCookieOptions(),
     maxAge: SESSION_LIFETIME_MS,
   })
+  return token
 }
 
 export function clearSessionCookie(response: Response) {

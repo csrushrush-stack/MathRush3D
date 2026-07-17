@@ -1,5 +1,5 @@
 import bcrypt from 'bcryptjs'
-import { Router } from 'express'
+import { Router, type Request } from 'express'
 import { rateLimit } from 'express-rate-limit'
 import { createSession, clearSessionCookie, deleteSession, requireAuth } from '../auth'
 import { pool } from '../db/pool'
@@ -7,6 +7,10 @@ import { readProfile } from './players'
 import { loginSchema, registrationSchema } from '../validation'
 
 export const authRouter = Router()
+
+function mobileSessionResponse(request: Request, token: string) {
+  return request.get('x-math-rush-client') === 'android' ? { sessionToken: token } : {}
+}
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1_000,
@@ -55,10 +59,10 @@ authRouter.post('/register', authLimiter, async (request, response) => {
       'INSERT INTO player_accounts (player_id, email, password_hash) VALUES ($1, lower($2), $3)',
       [playerId, input.email, passwordHash],
     )
-    await createSession(client, playerId, response)
+    const sessionToken = await createSession(client, playerId, response)
     const profile = await readProfile(client, playerId)
     await client.query('COMMIT')
-    response.status(201).json({ profile })
+    response.status(201).json({ profile, ...mobileSessionResponse(request, sessionToken) })
   } catch (error) {
     await client.query('ROLLBACK')
     throw error
@@ -85,10 +89,10 @@ authRouter.post('/login', authLimiter, async (request, response) => {
   try {
     await client.query('BEGIN')
     await client.query('UPDATE players SET last_seen_at = now() WHERE id = $1', [row.player_id])
-    await createSession(client, row.player_id, response)
+    const sessionToken = await createSession(client, row.player_id, response)
     const profile = await readProfile(client, row.player_id)
     await client.query('COMMIT')
-    response.json({ profile })
+    response.json({ profile, ...mobileSessionResponse(request, sessionToken) })
   } catch (error) {
     await client.query('ROLLBACK')
     throw error

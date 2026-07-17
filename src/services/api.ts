@@ -1,9 +1,12 @@
+import { Capacitor, CapacitorHttp } from '@capacitor/core'
 import { useGameStore, type Difficulty, type GameSettings } from '../store/useGameStore'
 
 const API_BASE = import.meta.env.VITE_API_URL
   ?? (import.meta.env.DEV ? '' : 'https://math-rush-api.onrender.com')
 const PENDING_RUNS_KEY = 'math-rush-pending-runs-v1'
 const DEVICE_ID_KEY = 'math-rush-device-id-v1'
+const SESSION_TOKEN_KEY = 'math-rush-session-token-v1'
+const MOBILE_CLIENT_HEADER = 'X-Math-Rush-Client'
 
 export interface LeaderboardEntry {
   rank: number
@@ -56,6 +59,30 @@ interface PendingRun {
 }
 
 async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
+  const headers = new Headers(init?.headers)
+  headers.set('Content-Type', 'application/json')
+  if (Capacitor.isNativePlatform()) {
+    headers.set(MOBILE_CLIENT_HEADER, 'android')
+    const sessionToken = localStorage.getItem(SESSION_TOKEN_KEY)
+    if (sessionToken) headers.set('Authorization', `Bearer ${sessionToken}`)
+
+    const nativeResponse = await CapacitorHttp.request({
+      url: `${API_BASE}${path}`,
+      method: init?.method ?? 'GET',
+      headers: Object.fromEntries(headers.entries()),
+      data: typeof init?.body === 'string' ? JSON.parse(init.body) : init?.body,
+      connectTimeout: 75_000,
+      readTimeout: 75_000,
+      responseType: 'json',
+    })
+    const body = nativeResponse.data as { error?: string } | null
+    if (nativeResponse.status < 200 || nativeResponse.status >= 300) {
+      throw new ApiError(body?.error ?? `API request failed (${nativeResponse.status})`, nativeResponse.status)
+    }
+    if (nativeResponse.status === 204) return undefined as T
+    return nativeResponse.data as T
+  }
+
   const controller = new AbortController()
   // Render's free service can need close to a minute to wake after being idle.
   // Keep the request alive long enough for that first mobile connection.
@@ -63,7 +90,7 @@ async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
   try {
     const response = await fetch(`${API_BASE}${path}`, {
       ...init,
-      headers: { 'Content-Type': 'application/json', ...init?.headers },
+      headers,
       credentials: 'include',
       signal: controller.signal,
     })
@@ -159,10 +186,11 @@ export async function bootstrapPlayer() {
 }
 
 export async function registerAccount(input: { displayName: string; email: string; password: string }) {
-  const response = await requestJson<{ profile: PlayerProfile }>('/api/auth/register', {
+  const response = await requestJson<{ profile: PlayerProfile; sessionToken?: string }>('/api/auth/register', {
     method: 'POST',
     body: JSON.stringify({ ...input, deviceId: getDeviceId() }),
   })
+  if (response.sessionToken) localStorage.setItem(SESSION_TOKEN_KEY, response.sessionToken)
   applyProfile(response.profile)
   useGameStore.getState().setBackendStatus('online')
   await flushPendingRuns(response.profile.id)
@@ -170,10 +198,11 @@ export async function registerAccount(input: { displayName: string; email: strin
 }
 
 export async function loginAccount(email: string, password: string) {
-  const response = await requestJson<{ profile: PlayerProfile }>('/api/auth/login', {
+  const response = await requestJson<{ profile: PlayerProfile; sessionToken?: string }>('/api/auth/login', {
     method: 'POST',
     body: JSON.stringify({ email, password }),
   })
+  if (response.sessionToken) localStorage.setItem(SESSION_TOKEN_KEY, response.sessionToken)
   applyProfile(response.profile)
   useGameStore.getState().setBackendStatus('online')
   await flushPendingRuns(response.profile.id)
@@ -184,6 +213,7 @@ export async function logoutAccount() {
   try {
     await requestJson<void>('/api/auth/logout', { method: 'POST' })
   } finally {
+    localStorage.removeItem(SESSION_TOKEN_KEY)
     useGameStore.getState().clearPlayer()
   }
 }
