@@ -14,14 +14,16 @@ describe('level balance', () => {
   for (const difficulty of ['easy', 'medium', 'hard', 'expert']) {
     it(`${difficulty} optimal route always survives the boss`, () => {
       const gates = generateGatePairs(difficulty, () => 0.42)
-      const obstacles = generateObstacles(difficulty)
-      const balance = calculateLevelBalance(gates, obstacles)
-
       expect(gates).toHaveLength(10)
-      expect(obstacles).toHaveLength(5)
-      expect(balance.bossHealth).toBeGreaterThan(0)
-      expect(balance.bossHealth).toBeLessThan(balance.realisticMaxCrowd)
-      expect(balance.realisticMaxCrowd - balance.bossHealth).toBeGreaterThan(0)
+      for (const sample of [0.05, 0.25, 0.45, 0.65, 0.85]) {
+        const obstacles = generateObstacles(difficulty, () => sample)
+        const balance = calculateLevelBalance(gates, obstacles)
+        expect(obstacles).toHaveLength(5)
+        expect(obstacles.some((obstacle) => obstacle.type === 'enemy')).toBe(true)
+        expect(balance.bossHealth).toBeGreaterThan(0)
+        expect(balance.bossHealth).toBeLessThan(balance.realisticMaxCrowd)
+        expect(balance.realisticMaxCrowd - balance.bossHealth).toBeGreaterThan(0)
+      }
     })
   }
 })

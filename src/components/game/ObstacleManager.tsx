@@ -6,7 +6,8 @@ import { useGameStore } from '../../store/useGameStore'
 import { audioManager } from '../../utils/audioManager'
 import { crossedPlane } from '../../utils/gameBalance'
 import type { ObstacleData } from '../../utils/obstacles'
-import type { CrowdController } from './CrowdRuntime'
+import type { CrowdAvoidanceArea, CrowdController } from './CrowdRuntime'
+import { InstancedEnemyCrowd } from './InstancedEnemyCrowd'
 
 type Resolution = 'active' | 'hit' | 'dodged'
 
@@ -144,34 +145,9 @@ function BattleFlash({ pulse }: { pulse: number }) {
 }
 
 function EnemyObstacle({ obstacle, fighting }: { obstacle: ObstacleState; fighting: boolean }) {
-  const groupRef = useRef<THREE.Group>(null)
-  const visibleCount = Math.min(16, Math.max(0, obstacle.enemyRemaining))
-  useFrame(({ clock }) => {
-    if (!groupRef.current || !fighting) return
-    groupRef.current.position.z = Math.sin(clock.elapsedTime * 18) * 0.12
-    groupRef.current.rotation.y = Math.sin(clock.elapsedTime * 13) * 0.035
-  })
   return (
     <AnimatedObstacle resolution={obstacle.resolution} position={[0, 0, obstacle.worldZ]}>
-      <group ref={groupRef}>
-        {Array.from({ length: visibleCount }, (_, index) => {
-          const columns = 4
-          const x = (index % columns - 1.5) * 0.6
-          const z = Math.floor(index / columns) * -0.55
-          return (
-            <group key={index} position={[x, 0, z]} rotation={[0, 0, fighting ? Math.sin(index * 2.1) * 0.08 : 0]}>
-              <mesh position={[0, 0.35, 0]}>
-                <cylinderGeometry args={[0.13, 0.18, 0.55, 6]} />
-                <meshStandardMaterial color="#be123c" emissive="#fb7185" emissiveIntensity={0.34} roughness={0.38} />
-              </mesh>
-              <mesh position={[0, 0.78, 0]}>
-                <sphereGeometry args={[0.19, 8, 6]} />
-                <meshStandardMaterial color="#e11d48" emissive="#fb7185" emissiveIntensity={0.38} roughness={0.32} />
-              </mesh>
-            </group>
-          )
-        })}
-      </group>
+      <InstancedEnemyCrowd count={obstacle.enemyRemaining} fighting={fighting} />
       <BattleFlash pulse={obstacle.impactPulse} />
       <DamageSign title={obstacle.enemyRemaining.toString()} subtitle={fighting ? 'BATTLE!' : 'ENEMY CROWD'} color="#fda4af" position={[0, 2.15, 0.15]} />
     </AnimatedObstacle>
@@ -262,6 +238,42 @@ export function ObstacleManager({
     }
     const controller = crowdControllerRef.current
     if (!controller) return
+
+    const avoidance: CrowdAvoidanceArea[] = []
+    for (const obstacle of source) {
+      if (processed.current.has(obstacle.id) || obstacle.type === 'enemy') continue
+      if (obstacle.type === 'wall') {
+        avoidance.push({
+          key: `wall-${obstacle.id}`,
+          centerX: obstacle.blockerSide === 'left' ? -1.35 : 1.35,
+          centerZ: obstacle.worldZ,
+          halfWidth: 0.8,
+          halfDepth: 0.36,
+          preferredSide: obstacle.blockerSide === 'left' ? 1 : -1,
+          strength: 2.35,
+        })
+      } else if (obstacle.type === 'blocker') {
+        avoidance.push({
+          key: `blocker-${obstacle.id}`,
+          centerX: obstacle.blockerSide === 'left' ? -1.3 : 1.3,
+          centerZ: obstacle.worldZ,
+          halfWidth: 1.18,
+          halfDepth: 0.36,
+          preferredSide: obstacle.blockerSide === 'left' ? 1 : -1,
+          strength: 2.6,
+        })
+      } else {
+        avoidance.push({
+          key: `hammer-${obstacle.id}`,
+          centerX: getHammerX(obstacle, clock.elapsedTime),
+          centerZ: obstacle.worldZ,
+          halfWidth: 0.74,
+          halfDepth: 0.4,
+          strength: 1.4,
+        })
+      }
+    }
+    controller.setAvoidanceAreas(avoidance)
 
     const activeBattle = battle.current
     if (activeBattle) {

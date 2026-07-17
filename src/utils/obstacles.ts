@@ -14,27 +14,38 @@ export interface ObstacleData {
 
 export const OBSTACLE_WORLD_ZS = [-38, -88, -138, -188, -238] as const
 
-const TYPES: ObstacleType[] = ['blocker', 'wall', 'enemy', 'hammer', 'wall']
-const SIDES: ObstacleSide[] = ['left', 'right', 'right', 'left', 'left']
+const STANDARD_PATTERNS: ObstacleType[][] = [
+  ['blocker', 'wall', 'enemy', 'hammer', 'wall'],
+  ['wall', 'hammer', 'enemy', 'blocker', 'hammer'],
+  ['hammer', 'blocker', 'enemy', 'wall', 'blocker'],
+]
+
+const ADVANCED_PATTERNS: ObstacleType[][] = [
+  ...STANDARD_PATTERNS,
+  ['enemy', 'hammer', 'wall', 'enemy', 'blocker'],
+  ['blocker', 'enemy', 'hammer', 'wall', 'enemy'],
+]
 
 const BALANCE = {
-  easy:   { enemy: 4, hammerSpeed: 1.2 },
-  medium: { enemy: 7, hammerSpeed: 1.5 },
-  hard:   { enemy: 10, hammerSpeed: 1.8 },
-  expert: { enemy: 14, hammerSpeed: 2.1 },
+  easy:   { enemy: 6, hammerSpeed: 1.2 },
+  medium: { enemy: 10, hammerSpeed: 1.5 },
+  hard:   { enemy: 14, hammerSpeed: 1.8 },
+  expert: { enemy: 20, hammerSpeed: 2.1 },
 } as const
 
-export function generateObstacles(difficulty: string): ObstacleData[] {
+export function generateObstacles(difficulty: string, random: () => number = Math.random): ObstacleData[] {
   const values = BALANCE[difficulty as keyof typeof BALANCE] ?? BALANCE.hard
+  const patterns = difficulty === 'hard' || difficulty === 'expert' ? ADVANCED_PATTERNS : STANDARD_PATTERNS
+  const pattern = patterns[Math.floor(random() * patterns.length)] ?? STANDARD_PATTERNS[0]
 
   return OBSTACLE_WORLD_ZS.map((worldZ, id) => ({
     id,
     worldZ,
-    type: TYPES[id],
-    blockerSide: SIDES[id],
+    type: pattern[id],
+    blockerSide: random() < 0.5 ? 'left' : 'right',
     enemyStrength: values.enemy + Math.floor(id / 2),
     hammerSpeed: values.hammerSpeed,
-    hammerPhase: id * 1.37,
+    hammerPhase: random() * Math.PI * 2,
   }))
 }
 

@@ -4,3 +4,10 @@
 
 - Source: https://www.kenney.nl/assets/castle-kit
 - License: CC0 1.0 Universal
+
+`characters/kenney-blocky-character.glb`, `kenney-blocky-enemy.glb`, and their
+textures are from Kenney's Blocky Characters 2.0 pack (`character-a.glb` and
+`character-r.glb`).
+
+- Source: https://kenney.nl/assets/blocky-characters
+- License: CC0 1.0 Universal

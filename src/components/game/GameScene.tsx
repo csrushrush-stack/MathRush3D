@@ -19,7 +19,7 @@ import { useRef, useCallback, useEffect, useMemo } from 'react'
 import { Canvas }              from '@react-three/fiber'
 import { Sky }                 from '@react-three/drei'
 import { Suspense }            from 'react'
-import { GameTrack }        from './GameTrack'
+import { GameTrack, type TrackTheme } from './GameTrack'
 import { CrowdRunner }      from './CrowdRunner'
 import { FollowCamera }     from './FollowCamera'
 import { GateManager }      from './GateManager'
@@ -37,6 +37,40 @@ interface GameSceneProps {
   onDistanceUpdate?: (dist: number) => void
 }
 
+interface LevelTheme {
+  background: string
+  fog: string
+  sky: [number, number, number]
+  track: TrackTheme
+}
+
+const LEVEL_THEMES: Record<string, LevelTheme> = {
+  easy: {
+    background: 'linear-gradient(180deg,#0891b2 0%,#38bdf8 52%,#a7f3d0 100%)',
+    fog: '#38bdf8',
+    sky: [70, 28, 35],
+    track: { road: '#0f766e', shoulder: '#155e75', rail: '#fde047', dash: '#ecfeff' },
+  },
+  medium: {
+    background: 'linear-gradient(180deg,#0c3fa0 0%,#1a70e0 50%,#3baaf8 100%)',
+    fog: '#1d4ed8',
+    sky: [80, 22, 40],
+    track: { road: '#1e40af', shoulder: '#1e3a8a', rail: '#fbbf24', dash: '#ffffff' },
+  },
+  hard: {
+    background: 'linear-gradient(180deg,#7c2d12 0%,#c2410c 48%,#f59e0b 100%)',
+    fog: '#c2410c',
+    sky: [55, 10, 20],
+    track: { road: '#7c2d12', shoulder: '#4c1d95', rail: '#fb7185', dash: '#ffedd5' },
+  },
+  expert: {
+    background: 'linear-gradient(180deg,#1e1b4b 0%,#4c1d95 50%,#7c3aed 100%)',
+    fog: '#4c1d95',
+    sky: [35, 16, 55],
+    track: { road: '#312e81', shoulder: '#0f172a', rail: '#22d3ee', dash: '#e0e7ff' },
+  },
+}
+
 export function GameScene({
   difficulty,
   isPaused,
@@ -49,7 +83,9 @@ export function GameScene({
   const crowdControllerRef = useRef<CrowdController | null>(null)
   const cameraShakeRef = useRef<number>(0)
   const reducedEffects = useGameStore((state) => state.settings.reducedEffects)
+  const theme = LEVEL_THEMES[difficulty] ?? LEVEL_THEMES.medium
   const gates = useMemo(() => generateGatePairs(difficulty), [difficulty])
+  const gateZs = useMemo(() => gates.map((gate) => gate.worldZ), [gates])
   const obstacles = useMemo(() => generateObstacles(difficulty), [difficulty])
   const balance = useMemo(
     () => calculateLevelBalance(gates, obstacles),
@@ -78,13 +114,13 @@ export function GameScene({
       // Portrait-tuned starting position matches FollowCamera's first-frame target
       // FOV 68 gives generous vertical coverage on a 9:16 shell
       camera={{ position: [0, 3.2, 6], fov: 68, near: 0.1, far: 400 }}
-      style={{ background: 'linear-gradient(180deg,#0c3fa0 0%,#1a70e0 50%,#3baaf8 100%)' }}
+      style={{ background: theme.background }}
     >
       <Suspense fallback={null}>
 
         {/* ── Sky ── */}
         <Sky
-          sunPosition={[80, 22, 40]}
+          sunPosition={theme.sky}
           turbidity={0.5}
           rayleigh={3.2}
           mieCoefficient={0.002}
@@ -99,10 +135,10 @@ export function GameScene({
         />
 
         {/* ── Fog — extended for the longer 300-unit level ── */}
-        <fog attach="fog" args={['#1d4ed8', 35, 160]} />
+        <fog attach="fog" args={[theme.fog, 35, 160]} />
 
         {/* ── Track (infinite tiled road) ── */}
-        <GameTrack crowdZRef={crowdZRef as React.RefObject<number>} />
+        <GameTrack crowdZRef={crowdZRef as React.RefObject<number>} theme={theme.track} />
 
         {/* ── Math gate pairs (exactly 10) ── */}
         <GateManager
@@ -134,6 +170,7 @@ export function GameScene({
         <CrowdRunner
           difficulty={difficulty}
           isPaused={isPaused}
+          gateZs={gateZs}
           controllerRef={crowdControllerRef}
           crowdDepthRef={crowdDepthRef}
           onPositionUpdate={handlePositionUpdate}

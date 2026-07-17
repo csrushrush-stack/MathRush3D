@@ -29,15 +29,22 @@ const NUM_TILES     = 3    // tiles in the pool
 // Dash mark Z positions within a tile (local)
 const DASH_ZS = [-22, -14, -6, 2, 10, 18]
 
+export interface TrackTheme {
+  road: string
+  shoulder: string
+  rail: string
+  dash: string
+}
+
 // ── Track tile ─────────────────────────────────────────────────────────────
-function TrackTile({ posZ }: { posZ: number }) {
+function TrackTile({ posZ, theme }: { posZ: number; theme: TrackTheme }) {
   return (
     <group position={[0, 0, posZ]}>
       {/* Main road surface */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
         <planeGeometry args={[TRACK_WIDTH, TILE_LENGTH]} />
         <meshStandardMaterial
-          color="#1e40ad"
+          color={theme.road}
           roughness={0.60}
           metalness={0.18}
         />
@@ -47,7 +54,7 @@ function TrackTile({ posZ }: { posZ: number }) {
       {DASH_ZS.map((z) => (
         <mesh key={z} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.01, z]}>
           <planeGeometry args={[0.15, 3.0]} />
-          <meshStandardMaterial color="#ffffff" opacity={0.18} transparent />
+          <meshStandardMaterial color={theme.dash} opacity={0.2} transparent />
         </mesh>
       ))}
 
@@ -56,8 +63,8 @@ function TrackTile({ posZ }: { posZ: number }) {
         <mesh key={x} position={[x, 0.04, 0]}>
           <boxGeometry args={[0.10, 0.06, TILE_LENGTH]} />
           <meshStandardMaterial
-            color="#fbbf24"
-            emissive="#fbbf24"
+            color={theme.rail}
+            emissive={theme.rail}
             emissiveIntensity={0.85}
             roughness={0.04}
             metalness={1}
@@ -69,7 +76,7 @@ function TrackTile({ posZ }: { posZ: number }) {
       {([-3.75, 3.75] as const).map((x) => (
         <mesh key={x} rotation={[-Math.PI / 2, 0, 0]} position={[x, 0, 0]} receiveShadow>
           <planeGeometry args={[2.5, TILE_LENGTH]} />
-          <meshStandardMaterial color="#1a4fa0" roughness={0.85} metalness={0.05} />
+          <meshStandardMaterial color={theme.shoulder} roughness={0.85} metalness={0.05} />
         </mesh>
       ))}
     </group>
@@ -79,9 +86,10 @@ function TrackTile({ posZ }: { posZ: number }) {
 // ── Main component ─────────────────────────────────────────────────────────
 interface GameTrackProps {
   crowdZRef: React.RefObject<number>
+  theme: TrackTheme
 }
 
-export function GameTrack({ crowdZRef }: GameTrackProps) {
+export function GameTrack({ crowdZRef, theme }: GameTrackProps) {
   // Each tile stores its own Z offset (world position)
   const tilesRef = useRef<number[]>(
     Array.from({ length: NUM_TILES }, (_, i) => -i * TILE_LENGTH)
@@ -114,7 +122,7 @@ export function GameTrack({ crowdZRef }: GameTrackProps) {
           ref={(el) => { groupRefs.current[i] = el }}
           position={[0, 0, z]}
         >
-          <TrackTile posZ={0} />
+          <TrackTile posZ={0} theme={theme} />
         </group>
       ))}
     </group>

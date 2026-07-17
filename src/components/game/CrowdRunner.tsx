@@ -1,19 +1,22 @@
 import { useCallback, useLayoutEffect, useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
+import { useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
 import { useInputController } from '../../hooks/useInputController'
 import { useGameStore } from '../../store/useGameStore'
+import { createOrganicFormation, gateCompression } from '../../utils/crowdFormation'
 import { TRACK_HALF } from './GameTrack'
-import type { CrowdController, CrowdHitArea } from './CrowdRuntime'
+import type { CrowdAvoidanceArea, CrowdController, CrowdHitArea } from './CrowdRuntime'
 
 const SPEED = { easy: 6.2, medium: 8.2, hard: 10.5, expert: 12.5 } as const
 const MAX_CROWD = 240
-const MAX_COLUMNS = 7
-const COLUMN_SPACING = 0.43
-const ROW_SPACING = 0.43
-const DEATH_SECONDS = 0.52
-const BOB_FREQUENCY = 9
-const BOB_HEIGHT = 0.055
+const DEATH_SECONDS = 0.62
+const CHARACTER_SCALE = 0.335
+const CHARACTER_MODEL = '/models/characters/kenney-blocky-character.glb'
+const PART_NAMES = ['leg-left', 'leg-right', 'torso', 'arm-left', 'arm-right', 'head'] as const
+const SEPARATION_DISTANCE = 0.31
+const SEPARATION_DISTANCE_SQ = SEPARATION_DISTANCE * SEPARATION_DISTANCE
+const X_AXIS = new THREE.Vector3(1, 0, 0)
 
 const SKIN_COLORS: Record<string, string> = {
   default: '#8b5cf6',
@@ -24,6 +27,7 @@ const SKIN_COLORS: Record<string, string> = {
   night: '#312e81',
 }
 
+type PartName = typeof PART_NAMES[number]
 type MemberLife = 'inactive' | 'alive' | 'dying'
 
 interface CrowdMember {
@@ -38,23 +42,36 @@ interface CrowdMember {
   vz: number
   age: number
   scale: number
+  visualScale: number
+  runPhase: number
+}
+
+interface CharacterPart {
+  name: PartName
+  geometry: THREE.BufferGeometry
+  material: THREE.Material
+  position: THREE.Vector3
+  quaternion: THREE.Quaternion
+  scale: THREE.Vector3
 }
 
 function makeMember(): CrowdMember {
   return {
     life: 'inactive', x: 0, y: 0, z: 0, targetX: 0, targetZ: 0,
-    vx: 0, vy: 0, vz: 0, age: 0, scale: 0,
+    vx: 0, vy: 0, vz: 0, age: 0, scale: 0, visualScale: 1, runPhase: 0,
   }
 }
 
-function columnsFor(count: number) {
-  // Width is intentionally capped; large crowds grow backward in additional rows.
-  return Math.max(1, Math.min(MAX_COLUMNS, Math.ceil(Math.sqrt(count * 0.52))))
+function nearestGateCompression(worldZ: number, gateZs: number[]) {
+  let compression = 1
+  for (const gateZ of gateZs) compression = Math.min(compression, gateCompression(worldZ - gateZ))
+  return compression
 }
 
 interface CrowdRunnerProps {
   difficulty: string
   isPaused: boolean
+  gateZs: number[]
   controllerRef: React.MutableRefObject<CrowdController | null>
   crowdDepthRef: React.MutableRefObject<number>
   onPositionUpdate: (worldZ: number, worldX: number) => void
@@ -63,20 +80,62 @@ interface CrowdRunnerProps {
 export function CrowdRunner({
   difficulty,
   isPaused,
+  gateZs,
   controllerRef,
   crowdDepthRef,
   onPositionUpdate,
 }: CrowdRunnerProps) {
   const groupRef = useRef<THREE.Group>(null)
-  const bodyRef = useRef<THREE.InstancedMesh>(null)
-  const headRef = useRef<THREE.InstancedMesh>(null)
-  const dummy = useMemo(() => new THREE.Object3D(), [])
+  const partMeshes = useRef<Record<PartName, THREE.InstancedMesh | null>>({
+    'leg-left': null, 'leg-right': null, torso: null,
+    'arm-left': null, 'arm-right': null, head: null,
+  })
   const members = useRef(Array.from({ length: MAX_CROWD }, makeMember))
+  const separationX = useMemo(() => new Float32Array(MAX_CROWD), [])
+  const separationZ = useMemo(() => new Float32Array(MAX_CROWD), [])
   const posX = useRef(0)
+  const steerX = useRef(0)
   const posZ = useRef(0)
   const elapsed = useRef(0)
   const formationDepth = useRef(0)
   const formationWidth = useRef(0)
+  const baseFormationDepth = useRef(0)
+  const baseFormationWidth = useRef(0)
+  const avoidanceAreas = useRef<CrowdAvoidanceArea[]>([])
+  const { scene } = useGLTF(CHARACTER_MODEL)
+
+  const parts = useMemo<CharacterPart[]>(() => {
+    scene.updateMatrixWorld(true)
+    return PART_NAMES.map((name) => {
+      const mesh = scene.getObjectByName(name)
+      if (!(mesh instanceof THREE.Mesh)) throw new Error(`Missing character part: ${name}`)
+      return {
+        name,
+        geometry: mesh.geometry,
+        material: Array.isArray(mesh.material) ? mesh.material[0] : mesh.material,
+        position: mesh.position.clone(),
+        quaternion: mesh.quaternion.clone(),
+        scale: mesh.scale.clone(),
+      }
+    })
+  }, [scene])
+  const partByName = useMemo(
+    () => Object.fromEntries(parts.map((part) => [part.name, part])) as Record<PartName, CharacterPart>,
+    [parts],
+  )
+
+  const transforms = useMemo(() => ({
+    root: new THREE.Matrix4(),
+    local: new THREE.Matrix4(),
+    world: new THREE.Matrix4(),
+    torsoWorld: new THREE.Matrix4(),
+    position: new THREE.Vector3(),
+    scale: new THREE.Vector3(),
+    rootQuaternion: new THREE.Quaternion(),
+    partQuaternion: new THREE.Quaternion(),
+    poseQuaternion: new THREE.Quaternion(),
+    rootEuler: new THREE.Euler(),
+  }), [])
 
   const crowdSize = useGameStore((state) => state.crowdSize)
   const runStage = useGameStore((state) => state.runStage)
@@ -88,18 +147,19 @@ export function CrowdRunner({
 
   const rebuildFormation = useCallback(() => {
     const alive = aliveMembers()
-    const columns = columnsFor(alive.length)
-    const rows = Math.max(1, Math.ceil(alive.length / columns))
-    formationDepth.current = Math.max(0, (rows - 1) * ROW_SPACING)
-    formationWidth.current = Math.max(0, (columns - 1) * COLUMN_SPACING)
-    crowdDepthRef.current = formationDepth.current
+    const formation = createOrganicFormation(alive.length)
+    baseFormationDepth.current = formation.depth
+    baseFormationWidth.current = formation.width
+    formationDepth.current = formation.depth
+    formationWidth.current = formation.width
+    crowdDepthRef.current = formation.depth
 
     alive.forEach((member, index) => {
-      const row = Math.floor(index / columns)
-      const itemsInRow = Math.min(columns, alive.length - row * columns)
-      const column = index % columns
-      member.targetX = (column - (itemsInRow - 1) / 2) * COLUMN_SPACING
-      member.targetZ = row * ROW_SPACING
+      const slot = formation.slots[index]
+      member.targetX = slot.x
+      member.targetZ = slot.z
+      member.runPhase = slot.phase
+      member.visualScale = slot.scale
     })
   }, [aliveMembers, crowdDepthRef])
 
@@ -112,11 +172,11 @@ export function CrowdRunner({
         if (toAdd <= 0) break
         if (member.life !== 'inactive') continue
         member.life = 'alive'
-        member.x = 0
+        member.x = (Math.random() - 0.5) * 0.18
         member.y = 0
-        member.z = formationDepth.current
+        member.z = baseFormationDepth.current + 0.35
         member.targetX = 0
-        member.targetZ = formationDepth.current
+        member.targetZ = baseFormationDepth.current
         member.vx = 0
         member.vy = 0
         member.vz = 0
@@ -178,6 +238,7 @@ export function CrowdRunner({
       getAliveCount: () => aliveMembers().length,
       getDepth: () => formationDepth.current,
       getWidth: () => formationWidth.current,
+      setAvoidanceAreas: (areas) => { avoidanceAreas.current = areas },
       hitArea,
       removeFront,
     }
@@ -187,18 +248,33 @@ export function CrowdRunner({
   useLayoutEffect(() => reconcileCount(crowdSize), [crowdSize, reconcileCount])
 
   useLayoutEffect(() => {
-    if (!bodyRef.current || !headRef.current) return
-    bodyRef.current.instanceMatrix.setUsage(THREE.DynamicDrawUsage)
-    headRef.current.instanceMatrix.setUsage(THREE.DynamicDrawUsage)
-    const base = new THREE.Color(SKIN_COLORS[selectedSkin] ?? SKIN_COLORS.default)
-    for (let index = 0; index < MAX_CROWD; index += 1) {
-      const color = base.clone().offsetHSL((index % 7) * 0.008, 0, ((index % 5) - 2) * 0.025)
-      bodyRef.current.setColorAt(index, color)
-      headRef.current.setColorAt(index, color)
+    const tint = new THREE.Color(SKIN_COLORS[selectedSkin] ?? SKIN_COLORS.default).lerp(new THREE.Color('#ffffff'), 0.58)
+    for (const mesh of Object.values(partMeshes.current)) {
+      if (!mesh) continue
+      mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage)
+      for (let index = 0; index < MAX_CROWD; index += 1) {
+        const color = tint.clone().offsetHSL((index % 7) * 0.006, 0, ((index % 5) - 2) * 0.018)
+        mesh.setColorAt(index, color)
+      }
+      if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true
     }
-    if (bodyRef.current.instanceColor) bodyRef.current.instanceColor.needsUpdate = true
-    if (headRef.current.instanceColor) headRef.current.instanceColor.needsUpdate = true
-  }, [selectedSkin])
+  }, [parts, selectedSkin])
+
+  const writePart = useCallback((
+    name: PartName,
+    index: number,
+    parent: THREE.Matrix4,
+    rotationX: number,
+    output?: THREE.Matrix4,
+  ) => {
+    const part = partByName[name]
+    transforms.poseQuaternion.setFromAxisAngle(X_AXIS, rotationX)
+    transforms.partQuaternion.copy(part.quaternion).multiply(transforms.poseQuaternion)
+    transforms.local.compose(part.position, transforms.partQuaternion, part.scale)
+    const world = output ?? transforms.world
+    world.multiplyMatrices(parent, transforms.local)
+    partMeshes.current[name]?.setMatrixAt(index, world)
+  }, [partByName, transforms])
 
   useFrame((_, frameDelta) => {
     if (isPaused) return
@@ -209,25 +285,91 @@ export function CrowdRunner({
       const speed = SPEED[difficulty as keyof typeof SPEED] ?? SPEED.medium
       posZ.current -= speed * delta
     }
+
+    const compression = nearestGateCompression(posZ.current, gateZs)
+    formationWidth.current = baseFormationWidth.current * compression
+    formationDepth.current = baseFormationDepth.current * (1 + (1 - compression) * 0.24)
+    crowdDepthRef.current = formationDepth.current
+
+    const formationHalfWidth = formationWidth.current * 0.5
+    const lateralLimit = Math.max(0.2, TRACK_HALF - formationHalfWidth - 0.08)
     if (runStage === 'run') {
-      const formationHalfWidth = formationWidth.current * 0.5
-      const lateralLimit = Math.max(0.2, TRACK_HALF - formationHalfWidth - 0.08)
-      posX.current = THREE.MathUtils.clamp(posX.current + tick(delta), -lateralLimit, lateralLimit)
+      steerX.current = THREE.MathUtils.clamp(steerX.current + tick(delta), -lateralLimit, lateralLimit)
     } else if (runStage === 'bonus') {
-      posX.current = THREE.MathUtils.damp(posX.current, 0, 8, delta)
+      steerX.current = THREE.MathUtils.damp(steerX.current, 0, 8, delta)
     }
+    steerX.current = THREE.MathUtils.clamp(steerX.current, -lateralLimit, lateralLimit)
+    const previousX = posX.current
+    posX.current = THREE.MathUtils.damp(posX.current, steerX.current, 12, delta)
+    const lateralVelocity = delta > 0 ? (posX.current - previousX) / delta : 0
 
     if (groupRef.current) groupRef.current.position.set(posX.current, 0, posZ.current)
+
+    separationX.fill(0)
+    separationZ.fill(0)
+    for (let first = 0; first < members.current.length; first += 1) {
+      const a = members.current[first]
+      if (a.life !== 'alive') continue
+      for (let second = first + 1; second < members.current.length; second += 1) {
+        const b = members.current[second]
+        if (b.life !== 'alive') continue
+        const dx = a.x - b.x
+        const dz = a.z - b.z
+        const distanceSq = dx * dx + dz * dz
+        if (distanceSq <= 0.0001 || distanceSq >= SEPARATION_DISTANCE_SQ) continue
+        const distance = Math.sqrt(distanceSq)
+        const force = (SEPARATION_DISTANCE - distance) / SEPARATION_DISTANCE
+        const pushX = dx / distance * force
+        const pushZ = dz / distance * force
+        separationX[first] += pushX
+        separationZ[first] += pushZ
+        separationX[second] -= pushX
+        separationZ[second] -= pushZ
+      }
+    }
+
+    for (let index = 0; index < members.current.length; index += 1) {
+      const member = members.current[index]
+      if (member.life !== 'alive') continue
+      const depthRatio = baseFormationDepth.current > 0 ? member.targetZ / baseFormationDepth.current : 0
+      const fluidTargetX = member.targetX * compression - lateralVelocity * depthRatio * 0.045
+      const fluidTargetZ = member.targetZ * (1 + (1 - compression) * 0.24)
+      member.vx += ((fluidTargetX - member.x) * 22 + separationX[index] * 18) * delta
+      member.vz += ((fluidTargetZ - member.z) * 20 + separationZ[index] * 15) * delta
+
+      const worldX = posX.current + member.x
+      const worldZ = posZ.current + member.z
+      for (const area of avoidanceAreas.current) {
+        const ahead = worldZ - area.centerZ
+        if (ahead < -area.halfDepth - 0.15 || ahead > 2.5) continue
+        const lateral = worldX - area.centerX
+        const expandedWidth = area.halfWidth + 0.28
+        if (Math.abs(lateral) > expandedWidth) continue
+        const proximity = (1 - Math.abs(lateral) / expandedWidth) * (1 - Math.max(0, ahead) / 2.5)
+        const side = area.preferredSide ?? (lateral === 0 ? (area.centerX <= 0 ? 1 : -1) : Math.sign(lateral))
+        member.vx += side * (area.strength ?? 2.2) * proximity * delta
+        member.vz += proximity * 0.7 * delta
+      }
+
+      const damping = Math.exp(-8.5 * delta)
+      member.vx *= damping
+      member.vz *= damping
+      member.x += member.vx * delta
+      member.z += member.vz * delta
+      member.x = THREE.MathUtils.clamp(member.x, -TRACK_HALF - posX.current + 0.08, TRACK_HALF - posX.current - 0.08)
+      member.z = THREE.MathUtils.clamp(member.z, -0.35, formationDepth.current + 1.25)
+      member.scale = THREE.MathUtils.damp(member.scale, 1, 11, delta)
+    }
 
     let renderIndex = 0
     for (let index = 0; index < members.current.length; index += 1) {
       const member = members.current[index]
       if (member.life === 'inactive') continue
+
+      let fall = 0
       if (member.life === 'alive') {
-        member.x = THREE.MathUtils.damp(member.x, member.targetX, 12, delta)
-        member.z = THREE.MathUtils.damp(member.z, member.targetZ, 12, delta)
-        member.scale = THREE.MathUtils.damp(member.scale, 1, 11, delta)
-        member.y = reducedEffects ? 0 : Math.abs(Math.sin(elapsed.current * BOB_FREQUENCY + index * 0.31)) * BOB_HEIGHT
+        const phase = elapsed.current * 10.5 + member.runPhase
+        member.y = reducedEffects ? 0 : Math.abs(Math.sin(phase)) * 0.035
       } else {
         member.age += delta
         member.vy -= 7.5 * delta
@@ -235,30 +377,36 @@ export function CrowdRunner({
         member.y += member.vy * delta
         member.z += member.vz * delta
         member.scale = Math.max(0, 1 - member.age / DEATH_SECONDS)
+        fall = Math.min(Math.PI * 0.55, member.age * 5.2)
         if (member.age >= DEATH_SECONDS) {
           member.life = 'inactive'
           continue
         }
       }
 
-      const fall = member.life === 'dying' ? Math.min(Math.PI * 0.5, member.age * 5) : 0.08
-      dummy.position.set(member.x, 0.36 + member.y, member.z)
-      dummy.rotation.set(fall, 0, member.life === 'dying' ? member.vx * 0.18 : 0)
-      dummy.scale.setScalar(member.scale)
-      dummy.updateMatrix()
-      bodyRef.current?.setMatrixAt(renderIndex, dummy.matrix)
-      dummy.position.set(member.x, 0.78 + member.y, member.z - 0.01)
-      dummy.rotation.set(fall, 0, member.life === 'dying' ? member.vx * 0.18 : 0)
-      dummy.updateMatrix()
-      headRef.current?.setMatrixAt(renderIndex, dummy.matrix)
+      const phase = elapsed.current * 10.5 + member.runPhase
+      const swing = member.life === 'alive' ? Math.sin(phase) * 0.72 : Math.sin(member.age * 10) * 0.2
+      const lean = member.life === 'alive' ? -0.12 : 0
+      const rootScale = CHARACTER_SCALE * member.scale * member.visualScale
+      transforms.position.set(member.x, member.y, member.z)
+      transforms.scale.setScalar(rootScale)
+      transforms.rootEuler.set(fall, Math.PI, member.life === 'dying' ? member.vx * 0.13 : -member.vx * 0.04)
+      transforms.rootQuaternion.setFromEuler(transforms.rootEuler)
+      transforms.root.compose(transforms.position, transforms.rootQuaternion, transforms.scale)
+
+      writePart('leg-left', renderIndex, transforms.root, swing)
+      writePart('leg-right', renderIndex, transforms.root, -swing)
+      writePart('torso', renderIndex, transforms.root, lean, transforms.torsoWorld)
+      writePart('arm-left', renderIndex, transforms.torsoWorld, -swing * 0.72)
+      writePart('arm-right', renderIndex, transforms.torsoWorld, swing * 0.72)
+      writePart('head', renderIndex, transforms.torsoWorld, -lean * 0.25)
       renderIndex += 1
     }
 
-    if (bodyRef.current && headRef.current) {
-      bodyRef.current.count = renderIndex
-      headRef.current.count = renderIndex
-      bodyRef.current.instanceMatrix.needsUpdate = true
-      headRef.current.instanceMatrix.needsUpdate = true
+    for (const mesh of Object.values(partMeshes.current)) {
+      if (!mesh) continue
+      mesh.count = renderIndex
+      mesh.instanceMatrix.needsUpdate = true
     }
     onPositionUpdate(posZ.current, posX.current)
   })
@@ -268,18 +416,20 @@ export function CrowdRunner({
 
   return (
     <group ref={groupRef}>
-      <instancedMesh ref={bodyRef} args={[undefined, undefined, MAX_CROWD]} frustumCulled={false}>
-        <cylinderGeometry args={[0.12, 0.16, 0.48, 6]} />
-        <meshStandardMaterial color="#ffffff" roughness={0.34} emissive={skinColor} emissiveIntensity={0.5} vertexColors toneMapped={false} />
-      </instancedMesh>
-      <instancedMesh ref={headRef} args={[undefined, undefined, MAX_CROWD]} frustumCulled={false}>
-        <sphereGeometry args={[0.19, 8, 6]} />
-        <meshStandardMaterial color="#ffffff" roughness={0.28} emissive={skinColor} emissiveIntensity={0.54} vertexColors toneMapped={false} />
-      </instancedMesh>
+      {parts.map((part) => (
+        <instancedMesh
+          key={part.name}
+          ref={(mesh) => { partMeshes.current[part.name] = mesh }}
+          args={[part.geometry, part.material, MAX_CROWD]}
+          frustumCulled={false}
+        />
+      ))}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.018, 0.45]} scale={[glowScale, glowScale * 0.65, 1]}>
         <circleGeometry args={[0.82, 18]} />
-        <meshBasicMaterial color={skinColor} transparent opacity={0.2} depthWrite={false} />
+        <meshBasicMaterial color={skinColor} transparent opacity={0.18} depthWrite={false} />
       </mesh>
     </group>
   )
 }
+
+useGLTF.preload(CHARACTER_MODEL)
