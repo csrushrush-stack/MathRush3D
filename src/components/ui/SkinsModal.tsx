@@ -1,19 +1,26 @@
 import { useState } from 'react'
 import { purchaseSkin } from '../../services/api'
 import { useGameStore } from '../../store/useGameStore'
+import { SKINS, type SkinDefinition } from '../../config/skins'
 
 interface SkinsModalProps {
   onClose: () => void
 }
 
-const SKINS = [
-  { id: 'default', name: 'Default', color: '#8b5cf6', price: 0 },
-  { id: 'ocean', name: 'Ocean', color: '#0ea5e9', price: 500 },
-  { id: 'forest', name: 'Forest', color: '#22c55e', price: 800 },
-  { id: 'flame', name: 'Flame', color: '#ef4444', price: 1000 },
-  { id: 'night', name: 'Night', color: '#312e81', price: 1500 },
-  { id: 'gold', name: 'Gold', color: '#f59e0b', price: 2000 },
-]
+function SkinPreview({ skin, marker }: { skin: SkinDefinition; marker: string }) {
+  return (
+    <span
+      className="relative block w-12 h-12 rounded-2xl overflow-hidden"
+      style={{ background: `radial-gradient(circle at 50% 75%,${skin.glow}66,rgba(15,23,42,.92) 68%)`, boxShadow: `0 4px 14px ${skin.glow}55` }}
+    >
+      <span className="absolute left-[17px] top-[7px] w-[14px] h-[14px] rounded-full" style={{ background: skin.head }} />
+      <span className="absolute left-[13px] top-[20px] w-[22px] h-[17px] rounded-lg" style={{ background: `linear-gradient(135deg,${skin.primary},${skin.secondary})` }} />
+      <span className="absolute left-[7px] top-[22px] w-[7px] h-[16px] rounded-full" style={{ background: skin.accent }} />
+      <span className="absolute right-[7px] top-[22px] w-[7px] h-[16px] rounded-full" style={{ background: skin.accent }} />
+      {marker && <span className="absolute inset-0 flex items-center justify-center text-white text-lg font-black" style={{ textShadow: '0 2px 6px #000' }}>{marker}</span>}
+    </span>
+  )
+}
 
 export function SkinsModal({ onClose }: SkinsModalProps) {
   const coins = useGameStore((state) => state.coins)
@@ -23,7 +30,7 @@ export function SkinsModal({ onClose }: SkinsModalProps) {
   const [busySkin, setBusySkin] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  const selectSkin = async (skin: (typeof SKINS)[number]) => {
+  const selectSkin = async (skin: SkinDefinition) => {
     const store = useGameStore.getState()
     const owned = store.ownedSkins.includes(skin.id)
     if (!owned && store.coins < skin.price) {
@@ -62,7 +69,7 @@ export function SkinsModal({ onClose }: SkinsModalProps) {
 
   return (
     <div className="absolute inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.68)', backdropFilter: 'blur(10px)' }} onClick={onClose}>
-      <div role="dialog" aria-modal="true" aria-label="Skins" className="modal-enter w-full max-w-xs rounded-3xl overflow-hidden" style={{ background: 'linear-gradient(180deg,#1e40af,#1e3a8a)', border: '2px solid #3b82f6', boxShadow: '0 24px 64px rgba(0,0,0,0.7)' }} onClick={(event) => event.stopPropagation()}>
+      <div role="dialog" aria-modal="true" aria-label="Skins" className="modal-enter w-full max-w-sm max-h-[88dvh] rounded-3xl overflow-y-auto" style={{ background: 'linear-gradient(180deg,#1e40af,#1e3a8a)', border: '2px solid #3b82f6', boxShadow: '0 24px 64px rgba(0,0,0,0.7)' }} onClick={(event) => event.stopPropagation()}>
         <div className="flex items-center justify-between px-5 py-4" style={{ background: 'linear-gradient(135deg,#2563eb,#1d4ed8)' }}>
           <div className="flex items-center gap-2 text-white font-black text-lg tracking-widest"><span>👕</span><span>SKINS</span></div>
           <button onClick={onClose} aria-label="Close skins" className="w-8 h-8 rounded-full text-sky-200" style={{ background: 'rgba(255,255,255,0.1)' }}>×</button>
@@ -78,12 +85,11 @@ export function SkinsModal({ onClose }: SkinsModalProps) {
                 disabled={busySkin !== null}
                 onClick={() => void selectSkin(skin)}
                 className="flex flex-col items-center gap-2 p-3 rounded-2xl transition-all active:scale-95 disabled:opacity-60"
-                style={{ background: active ? `${skin.color}22` : 'rgba(255,255,255,0.05)', border: active ? `2px solid ${skin.color}` : '2px solid rgba(255,255,255,0.1)', boxShadow: active ? `0 0 14px ${skin.color}55` : 'none' }}
+                style={{ background: active ? `${skin.glow}22` : 'rgba(255,255,255,0.05)', border: active ? `2px solid ${skin.glow}` : '2px solid rgba(255,255,255,0.1)', boxShadow: active ? `0 0 14px ${skin.glow}55` : 'none' }}
               >
-                <span className="w-12 h-12 rounded-full flex items-center justify-center text-white text-lg font-black" style={{ background: `radial-gradient(circle at 35% 35%,${skin.color}cc,${skin.color})`, boxShadow: `0 4px 12px ${skin.color}66` }}>
-                  {busy ? '…' : active ? '✓' : owned ? '' : '🔒'}
-                </span>
+                <SkinPreview skin={skin} marker={busy ? '…' : active ? '✓' : owned ? '' : '🔒'} />
                 <span className="text-white text-[11px] font-bold">{skin.name}</span>
+                <span className="text-[8px] font-black uppercase tracking-widest" style={{ color: skin.glow }}>{skin.rarity}</span>
                 <span className={`text-[10px] font-bold ${owned ? 'text-green-400' : coins >= skin.price ? 'text-yellow-400' : 'text-red-400'}`}>
                   {owned ? (active ? 'Equipped' : 'Owned') : `● ${skin.price}`}
                 </span>

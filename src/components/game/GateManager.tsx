@@ -29,35 +29,35 @@ function createGateTexture(option: GateOption, gateNumber: number, accent: strin
   context.lineWidth = 8
   context.strokeRect(8, 8, canvas.width - 16, canvas.height - 16)
   const operationStyle = option.operation === 'add'
-    ? { label: 'ADD', symbol: '+', color: '#4ade80' }
+    ? { label: 'ADD THE ANSWER', symbol: '+', color: '#4ade80' }
     : option.operation === 'divide'
-      ? { label: 'DIVIDE', symbol: '÷', color: '#f472b6' }
+      ? { label: 'DIVIDE BY ANSWER', symbol: '÷', color: '#f472b6' }
       : option.operation === 'multiply'
-        ? { label: 'MULTIPLY', symbol: '×', color: '#c084fc' }
-        : { label: 'SUBTRACT', symbol: '−', color: '#fb7185' }
+        ? { label: 'MULTIPLY BY ANSWER', symbol: '×', color: '#c084fc' }
+        : { label: 'SUBTRACT ANSWER', symbol: '−', color: '#fb7185' }
 
   context.textAlign = 'center'
   context.textBaseline = 'middle'
   context.shadowColor = operationStyle.color
   context.shadowBlur = 16
   context.beginPath()
-  context.arc(112, 111, 48, 0, Math.PI * 2)
+  context.arc(58, 111, 35, 0, Math.PI * 2)
   context.fillStyle = `${operationStyle.color}33`
   context.fill()
   context.lineWidth = 6
   context.strokeStyle = operationStyle.color
   context.stroke()
   context.fillStyle = '#ffffff'
-  context.font = '900 78px Nunito, Arial, sans-serif'
-  context.fillText(operationStyle.symbol, 112, 108)
-  context.textAlign = 'left'
-  context.font = '900 82px Nunito, Arial, sans-serif'
-  context.fillText(option.operand.toString(), 180, 111)
+  context.font = '900 54px Nunito, Arial, sans-serif'
+  context.fillText(operationStyle.symbol, 58, 108)
+  context.textAlign = 'center'
+  context.font = '900 60px Nunito, Arial, sans-serif'
+  context.fillText(option.expr, 232, 111)
   context.shadowBlur = 0
   context.textAlign = 'center'
   context.fillStyle = operationStyle.color
-  context.font = '900 23px Nunito, Arial, sans-serif'
-  context.fillText(`${operationStyle.label} · ${gateNumber}`, canvas.width / 2, 34)
+  context.font = '900 19px Nunito, Arial, sans-serif'
+  context.fillText(`${operationStyle.label} · GATE ${gateNumber}`, canvas.width / 2, 34)
 
   const texture = new THREE.CanvasTexture(canvas)
   texture.colorSpace = THREE.SRGBColorSpace

@@ -29,17 +29,56 @@ const ADD_RANGES = {
   expert: [15, 23],
 } as const
 
+const PROBLEM_OFFSETS = {
+  easy: 4,
+  medium: 7,
+  hard: 10,
+  expert: 14,
+} as const
+
 function integer(random: () => number, min: number, max: number) {
   return Math.floor(random() * (max - min + 1)) + min
 }
 
-function option(operation: GateOperation, operand: number): GateOption {
+function problemExpression(
+  operation: GateOperation,
+  operand: number,
+  difficulty: keyof typeof ADD_RANGES,
+  random: () => number,
+) {
+  if (operation === 'add') {
+    const left = integer(random, 1, Math.max(1, operand - 1))
+    return `${left} + ${operand - left}`
+  }
+  if (operation === 'subtract') {
+    const right = integer(random, 1, PROBLEM_OFFSETS[difficulty])
+    return `${operand + right} − ${right}`
+  }
+  if (operation === 'multiply') {
+    if (operand === 4) return '2 × 2'
+    if (operand === 6) return '2 × 3'
+    return `1 × ${operand}`
+  }
+
+  const maximumDenominator = difficulty === 'easy' ? 2
+    : difficulty === 'medium' ? 3
+      : 4
+  const denominator = integer(random, 2, maximumDenominator)
+  return `${operand * denominator} ÷ ${denominator}`
+}
+
+function option(
+  operation: GateOperation,
+  operand: number,
+  difficulty: keyof typeof ADD_RANGES,
+  random: () => number,
+): GateOption {
   const safeOperand = Math.max(1, Math.round(operand))
-  const symbol = operation === 'add' ? '+'
-    : operation === 'subtract' ? '-'
-      : operation === 'multiply' ? '×'
-        : '÷'
-  return { expr: `${symbol}${safeOperand}`, operation, operand: safeOperand }
+  return {
+    expr: problemExpression(operation, safeOperand, difficulty, random),
+    operation,
+    operand: safeOperand,
+  }
 }
 
 /** Applies a gate to a crowd. Division is integer division and no gate can create a negative crowd. */
@@ -84,30 +123,37 @@ function createOptions(
   const safeLoss = Math.max(1, Math.min(bestCrowd - 1, integer(random, 2, Math.max(3, Math.floor(maxAdd * 0.65)))))
   const divisor = difficulty === 'expert' && bestCrowd >= 9 && random() > 0.55 ? 3 : 2
   const maxCrowd = MAX_ROUTE_CROWD[difficulty]
-  const multiplier = difficulty === 'expert' && bestCrowd < 45 && random() > 0.55 ? 3 : 2
+  const multiplier = difficulty === 'easy' ? 2
+    : difficulty === 'medium' ? (random() > 0.68 ? 3 : 2)
+      : difficulty === 'hard' ? (random() > 0.56 ? 4 : 2)
+        : (random() > 0.42 ? 4 : 3)
   const canMultiply = bestCrowd * multiplier <= maxCrowd
+
+  const make = (operation: GateOperation, operand: number) => (
+    option(operation, operand, difficulty, random)
+  )
 
   // The ten-pair sequence deliberately exposes all four operations. Multipliers
   // only appear when they keep the best route inside the renderer's safe range.
   switch (index) {
-    case 0: return [option('add', boost), option('subtract', safeLoss)]
-    case 1: return [option('add', boost + 2), option('divide', divisor)]
+    case 0: return [make('add', boost), make('subtract', safeLoss)]
+    case 1: return [make('add', boost + 2), make('divide', divisor)]
     case 2: return canMultiply
-      ? [option('multiply', multiplier), option('add', Math.max(2, boost - 3))]
-      : [option('add', boost), option('subtract', safeLoss)]
-    case 3: return [option('add', boost + 1), option('subtract', safeLoss)]
+      ? [make('multiply', multiplier), make('add', Math.max(2, boost - 3))]
+      : [make('add', boost), make('subtract', safeLoss)]
+    case 3: return [make('add', boost + 1), make('subtract', safeLoss)]
     case 4: return canMultiply
-      ? [option('multiply', 2), option('divide', divisor)]
-      : [option('add', boost), option('divide', divisor)]
-    case 5: return [option('add', boost + 2), option('subtract', safeLoss)]
-    case 6: return [option('add', boost), option('divide', divisor)]
+      ? [make('multiply', 2), make('divide', divisor)]
+      : [make('add', boost), make('divide', divisor)]
+    case 5: return [make('add', boost + 2), make('subtract', safeLoss)]
+    case 6: return [make('add', boost), make('divide', divisor)]
     case 7: return canMultiply
-      ? [option('multiply', 2), option('add', Math.max(2, boost - 4))]
-      : [option('add', boost + 1), option('subtract', safeLoss)]
-    case 8: return [option('add', boost + 2), option('divide', divisor)]
+      ? [make('multiply', 2), make('add', Math.max(2, boost - 4))]
+      : [make('add', boost + 1), make('subtract', safeLoss)]
+    case 8: return [make('add', boost + 2), make('divide', divisor)]
     default: return canMultiply
-      ? [option('multiply', 2), option('subtract', safeLoss)]
-      : [option('add', boost + 3), option('subtract', safeLoss)]
+      ? [make('multiply', 2), make('subtract', safeLoss)]
+      : [make('add', boost + 3), make('subtract', safeLoss)]
   }
 }
 

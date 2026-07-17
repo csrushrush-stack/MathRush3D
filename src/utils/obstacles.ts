@@ -22,8 +22,8 @@ const STANDARD_PATTERNS: ObstacleType[][] = [
 
 const ADVANCED_PATTERNS: ObstacleType[][] = [
   ...STANDARD_PATTERNS,
-  ['enemy', 'hammer', 'wall', 'enemy', 'blocker'],
-  ['blocker', 'enemy', 'hammer', 'wall', 'enemy'],
+  ['hammer', 'blocker', 'enemy', 'wall', 'enemy'],
+  ['blocker', 'wall', 'hammer', 'enemy', 'enemy'],
 ]
 
 const BALANCE = {

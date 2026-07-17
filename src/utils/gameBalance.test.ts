@@ -26,6 +26,40 @@ describe('level balance', () => {
       }
     })
   }
+
+  it('never places an enemy crowd in the two early obstacle slots', () => {
+    for (const difficulty of ['hard', 'expert']) {
+      for (const sample of [0.05, 0.25, 0.45, 0.65, 0.85]) {
+        const obstacles = generateObstacles(difficulty, () => sample)
+        expect(obstacles.slice(0, 2).every((obstacle) => obstacle.type !== 'enemy')).toBe(true)
+      }
+    }
+  })
+
+  it('keeps every enemy encounter survivable on the best route', () => {
+    for (const difficulty of ['easy', 'medium', 'hard', 'expert']) {
+      for (const sample of [0.05, 0.25, 0.45, 0.65, 0.85]) {
+        const gates = generateGatePairs(difficulty, () => sample)
+        const obstacles = generateObstacles(difficulty, () => sample)
+        let crowd = 1
+        let gateIndex = 0
+
+        for (const obstacle of obstacles) {
+          while (gateIndex < gates.length && gates[gateIndex].worldZ > obstacle.worldZ) {
+            const gate = gates[gateIndex]
+            crowd = Math.max(
+              applyGateOption(crowd, gate.left),
+              applyGateOption(crowd, gate.right),
+            )
+            gateIndex += 1
+          }
+          if (obstacle.type !== 'enemy') continue
+          expect(crowd, `${difficulty} enemy ${obstacle.id}`).toBeGreaterThan(obstacle.enemyStrength)
+          crowd -= obstacle.enemyStrength
+        }
+      }
+    }
+  })
 })
 
 describe('math gates', () => {
@@ -52,6 +86,26 @@ describe('math gates', () => {
     const choices = computeBestRoute(pairs).choices
     expect(new Set(choices)).toEqual(new Set(['left', 'right']))
     expect(choices.join('')).not.toMatch(/(left){3}|(right){3}/)
+  })
+
+  it('shows arithmetic problems whose answers drive each gate operation', () => {
+    const solve = (expression: string) => {
+      const [leftText, symbol, rightText] = expression.split(' ')
+      const left = Number(leftText)
+      const right = Number(rightText)
+      if (symbol === '+') return left + right
+      if (symbol === '−') return left - right
+      if (symbol === '×') return left * right
+      return Math.floor(left / right)
+    }
+
+    for (const difficulty of ['easy', 'medium', 'hard', 'expert']) {
+      const pairs = generateGatePairs(difficulty, () => 0.73)
+      for (const pair of pairs) {
+        expect(solve(pair.left.expr)).toBe(pair.left.operand)
+        expect(solve(pair.right.expr)).toBe(pair.right.operand)
+      }
+    }
   })
 })
 

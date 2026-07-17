@@ -4,7 +4,8 @@ import { useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
 import { useInputController } from '../../hooks/useInputController'
 import { useGameStore } from '../../store/useGameStore'
-import { createOrganicFormation, gateCompression } from '../../utils/crowdFormation'
+import { getSkinDefinition } from '../../config/skins'
+import { createOrganicFormation, gateCompression, wallCompression } from '../../utils/crowdFormation'
 import { TRACK_HALF } from './GameTrack'
 import type { CrowdAvoidanceArea, CrowdController, CrowdHitArea } from './CrowdRuntime'
 
@@ -17,15 +18,6 @@ const PART_NAMES = ['leg-left', 'leg-right', 'torso', 'arm-left', 'arm-right', '
 const SEPARATION_DISTANCE = 0.31
 const SEPARATION_DISTANCE_SQ = SEPARATION_DISTANCE * SEPARATION_DISTANCE
 const X_AXIS = new THREE.Vector3(1, 0, 0)
-
-const SKIN_COLORS: Record<string, string> = {
-  default: '#8b5cf6',
-  ocean: '#0ea5e9',
-  flame: '#ef4444',
-  forest: '#22c55e',
-  gold: '#f59e0b',
-  night: '#312e81',
-}
 
 type PartName = typeof PART_NAMES[number]
 type MemberLife = 'inactive' | 'alive' | 'dying'
@@ -97,6 +89,7 @@ export function CrowdRunner({
   const steerX = useRef(0)
   const posZ = useRef(0)
   const elapsed = useRef(0)
+  const wallPressure = useRef(0)
   const formationDepth = useRef(0)
   const formationWidth = useRef(0)
   const baseFormationDepth = useRef(0)
@@ -140,6 +133,7 @@ export function CrowdRunner({
   const crowdSize = useGameStore((state) => state.crowdSize)
   const runStage = useGameStore((state) => state.runStage)
   const selectedSkin = useGameStore((state) => state.selectedSkin)
+  const skin = getSkinDefinition(selectedSkin)
   const reducedEffects = useGameStore((state) => state.settings.reducedEffects)
   const { tick } = useInputController(!isPaused && runStage === 'run')
 
@@ -248,9 +242,17 @@ export function CrowdRunner({
   useLayoutEffect(() => reconcileCount(crowdSize), [crowdSize, reconcileCount])
 
   useLayoutEffect(() => {
-    const tint = new THREE.Color(SKIN_COLORS[selectedSkin] ?? SKIN_COLORS.default).lerp(new THREE.Color('#ffffff'), 0.58)
-    for (const mesh of Object.values(partMeshes.current)) {
+    const partColors: Record<PartName, string> = {
+      'leg-left': skin.secondary,
+      'leg-right': skin.secondary,
+      torso: skin.primary,
+      'arm-left': skin.accent,
+      'arm-right': skin.accent,
+      head: skin.head,
+    }
+    for (const [name, mesh] of Object.entries(partMeshes.current) as Array<[PartName, THREE.InstancedMesh | null]>) {
       if (!mesh) continue
+      const tint = new THREE.Color(partColors[name]).lerp(new THREE.Color('#ffffff'), name === 'head' ? 0.34 : 0.2)
       mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage)
       for (let index = 0; index < MAX_CROWD; index += 1) {
         const color = tint.clone().offsetHSL((index % 7) * 0.006, 0, ((index % 5) - 2) * 0.018)
@@ -258,7 +260,7 @@ export function CrowdRunner({
       }
       if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true
     }
-  }, [parts, selectedSkin])
+  }, [parts, skin])
 
   const writePart = useCallback((
     name: PartName,
@@ -286,15 +288,33 @@ export function CrowdRunner({
       posZ.current -= speed * delta
     }
 
-    const compression = nearestGateCompression(posZ.current, gateZs)
-    formationWidth.current = baseFormationWidth.current * compression
-    formationDepth.current = baseFormationDepth.current * (1 + (1 - compression) * 0.24)
+    const gateScale = nearestGateCompression(posZ.current, gateZs)
+    const normalHalfWidth = baseFormationWidth.current * gateScale * 0.5
+    const normalLateralLimit = Math.max(0.2, TRACK_HALF - normalHalfWidth - 0.08)
+    const inputDelta = runStage === 'run' ? tick(delta) : 0
+    const attemptedSteer = steerX.current + inputDelta
+    const pushingIntoRail = runStage === 'run'
+      && Math.abs(attemptedSteer) > normalLateralLimit
+      && Math.abs(inputDelta) > 0.0001
+      && Math.sign(inputDelta) === Math.sign(attemptedSteer)
+    wallPressure.current = THREE.MathUtils.damp(
+      wallPressure.current,
+      pushingIntoRail ? 1 : 0,
+      pushingIntoRail ? 10 : 5,
+      delta,
+    )
+
+    const wallScale = wallCompression(wallPressure.current)
+    const horizontalCompression = gateScale * wallScale
+    formationWidth.current = baseFormationWidth.current * horizontalCompression
+    formationDepth.current = baseFormationDepth.current
+      * (1 + (1 - gateScale) * 0.24 + (1 - wallScale) * 0.38)
     crowdDepthRef.current = formationDepth.current
 
     const formationHalfWidth = formationWidth.current * 0.5
     const lateralLimit = Math.max(0.2, TRACK_HALF - formationHalfWidth - 0.08)
     if (runStage === 'run') {
-      steerX.current = THREE.MathUtils.clamp(steerX.current + tick(delta), -lateralLimit, lateralLimit)
+      steerX.current = THREE.MathUtils.clamp(attemptedSteer, -lateralLimit, lateralLimit)
     } else if (runStage === 'bonus') {
       steerX.current = THREE.MathUtils.damp(steerX.current, 0, 8, delta)
     }
@@ -332,8 +352,9 @@ export function CrowdRunner({
       const member = members.current[index]
       if (member.life !== 'alive') continue
       const depthRatio = baseFormationDepth.current > 0 ? member.targetZ / baseFormationDepth.current : 0
-      const fluidTargetX = member.targetX * compression - lateralVelocity * depthRatio * 0.045
-      const fluidTargetZ = member.targetZ * (1 + (1 - compression) * 0.24)
+      const fluidTargetX = member.targetX * horizontalCompression - lateralVelocity * depthRatio * 0.045
+      const fluidTargetZ = member.targetZ
+        * (1 + (1 - gateScale) * 0.24 + (1 - wallScale) * 0.38)
       member.vx += ((fluidTargetX - member.x) * 22 + separationX[index] * 18) * delta
       member.vz += ((fluidTargetZ - member.z) * 20 + separationZ[index] * 15) * delta
 
@@ -412,7 +433,7 @@ export function CrowdRunner({
   })
 
   const glowScale = Math.min(1 + Math.sqrt(Math.max(1, crowdSize)) * 0.16, 2.7)
-  const skinColor = SKIN_COLORS[selectedSkin] ?? SKIN_COLORS.default
+  const skinColor = skin.glow
 
   return (
     <group ref={groupRef}>
@@ -426,7 +447,12 @@ export function CrowdRunner({
       ))}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.018, 0.45]} scale={[glowScale, glowScale * 0.65, 1]}>
         <circleGeometry args={[0.82, 18]} />
-        <meshBasicMaterial color={skinColor} transparent opacity={0.18} depthWrite={false} />
+        <meshBasicMaterial
+          color={skinColor}
+          transparent
+          opacity={skin.rarity === 'Legendary' ? 0.28 : skin.rarity === 'Epic' ? 0.23 : 0.18}
+          depthWrite={false}
+        />
       </mesh>
     </group>
   )

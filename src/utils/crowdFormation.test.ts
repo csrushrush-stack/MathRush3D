@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { createOrganicFormation, gateCompression } from './crowdFormation'
+import { createOrganicFormation, gateCompression, wallCompression } from './crowdFormation'
 
 describe('organic crowd formation', () => {
   it('keeps every member inside its reported bounds', () => {
@@ -18,5 +18,12 @@ describe('organic crowd formation', () => {
     expect(gateCompression(0)).toBeCloseTo(0.68)
     expect(gateCompression(1)).toBeLessThan(gateCompression(2))
     expect(gateCompression(4)).toBe(1)
+  })
+
+  it('squeezes at a wall without collapsing the formation', () => {
+    expect(wallCompression(0)).toBe(1)
+    expect(wallCompression(0.5)).toBeCloseTo(0.88)
+    expect(wallCompression(1)).toBeCloseTo(0.76)
+    expect(wallCompression(3)).toBeCloseTo(0.76)
   })
 })
