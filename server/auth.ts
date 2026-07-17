@@ -6,6 +6,16 @@ import { pool } from './db/pool'
 const SESSION_COOKIE = 'math_rush_session'
 const SESSION_LIFETIME_MS = 30 * 24 * 60 * 60 * 1_000
 
+function sessionCookieOptions() {
+  const production = process.env.NODE_ENV === 'production'
+  return {
+    httpOnly: true,
+    sameSite: production ? 'none' as const : 'lax' as const,
+    secure: production,
+    path: '/',
+  }
+}
+
 declare global {
   namespace Express {
     interface Request {
@@ -42,21 +52,13 @@ export async function createSession(client: PoolClient, playerId: string, respon
     [playerId, hashToken(token), expiresAt],
   )
   response.cookie(SESSION_COOKIE, token, {
-    httpOnly: true,
-    sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
-    path: '/',
+    ...sessionCookieOptions(),
     maxAge: SESSION_LIFETIME_MS,
   })
 }
 
 export function clearSessionCookie(response: Response) {
-  response.clearCookie(SESSION_COOKIE, {
-    httpOnly: true,
-    sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
-    path: '/',
-  })
+  response.clearCookie(SESSION_COOKIE, sessionCookieOptions())
 }
 
 export async function resolveSession(request: Request) {
