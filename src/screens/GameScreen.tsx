@@ -27,7 +27,8 @@ import {
 import { GameScene }    from '../components/game/GameScene'
 import { useGameStore } from '../store/useGameStore'
 import { audioManager } from '../utils/audioManager'
-import { submitCompletedRun } from '../services/api'
+import { saveSelectedDifficulty, submitCompletedRun } from '../services/api'
+import { getNextLevelSelection } from '../utils/levelProgress'
 
 // ─── Design tokens (same glass style as HomeScreen) ────────────────────────
 
@@ -409,9 +410,13 @@ function StarDisplay({ stars }: { stars: number }) {
 }
 
 function WinOverlay({
+  nextLabel,
+  onNext,
   onRetry,
   onHome,
 }: {
+  nextLabel: string | null
+  onNext: () => void
   onRetry: () => void
   onHome:  () => void
 }) {
@@ -498,14 +503,30 @@ function WinOverlay({
           ))}
         </div>
 
+        {nextLabel && <button
+          id="win-next-button"
+          onClick={() => { audioManager.playButtonClick(); onNext() }}
+          className="w-full flex items-center justify-center gap-2 rounded-2xl font-black text-white"
+          style={{
+            height: 56,
+            fontSize: 16,
+            letterSpacing: '0.08em',
+            background: 'linear-gradient(180deg,#facc15 0%,#f59e0b 48%,#d97706 100%)',
+            border: '2px solid #fef08a',
+            boxShadow: '0 5px 0 #78350f, 0 8px 24px rgba(245,158,11,0.48)',
+          }}
+        >
+          NEXT · {nextLabel} →
+        </button>}
+
         {/* Play again */}
         <button
           id="win-retry-button"
           onClick={() => { audioManager.playButtonClick(); onRetry() }}
           className="w-full flex items-center justify-center gap-2 rounded-2xl font-black text-white"
           style={{
-            height: 54,
-            fontSize: 16,
+            height: nextLabel ? 44 : 54,
+            fontSize: nextLabel ? 13 : 16,
             letterSpacing: '0.10em',
             background: 'linear-gradient(180deg, #4ade80 0%, #22c55e 35%, #16a34a 70%, #15803d 100%)',
             border: '2px solid #86efac',
@@ -519,7 +540,7 @@ function WinOverlay({
           onTouchStart={(e) => { e.currentTarget.style.transform = 'translateY(2px)' }}
           onTouchEnd={(e)   => { e.currentTarget.style.transform = 'none' }}
         >
-          ↺ Play Again
+          ↺ Replay This Level
         </button>
 
         {/* Home */}
@@ -552,6 +573,8 @@ export function GameScreen() {
   const phase      = useGameStore((s) => s.phase)
   const difficulty = useGameStore((s) => s.difficulty)
   const selectedLevel = useGameStore((s) => s.selectedLevel)
+  const setSelectedLevel = useGameStore((s) => s.setSelectedLevel)
+  const setDifficulty = useGameStore((s) => s.setDifficulty)
   const crowdSize  = useGameStore((s) => s.crowdSize)
   const isPaused   = useGameStore((s) => s.isPaused)
   const setPaused  = useGameStore((s) => s.setPaused)
@@ -601,6 +624,14 @@ export function GameScreen() {
   const handleResume = () => setPaused(false)
   const handleHome   = () => { setPaused(false); setPhase('home') }
   const handleRetry  = () => { resetGame() }  // App's gameKey key forces remount
+  const nextLevel = getNextLevelSelection(difficulty, selectedLevel)
+  const handleNextLevel = () => {
+    if (!nextLevel) return
+    setDifficulty(nextLevel.difficulty)
+    setSelectedLevel(nextLevel.level)
+    void saveSelectedDifficulty(nextLevel.difficulty, nextLevel.level)
+    resetGame()
+  }
 
   // Difficulty accent colours (matching home screen diff buttons)
   const diffAccent: Record<string, string> = {
@@ -746,6 +777,8 @@ export function GameScreen() {
         {/* ── WIN OVERLAY ── */}
         {phase === 'win' && (
           <WinOverlay
+            nextLabel={nextLevel ? `${nextLevel.difficulty.toUpperCase()} ${nextLevel.level}` : null}
+            onNext={handleNextLevel}
             onRetry={handleRetry}
             onHome={() => setPhase('home')}
           />

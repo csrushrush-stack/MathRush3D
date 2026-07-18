@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { completeLevel, createLevelRandom, EMPTY_LEVEL_PROGRESS, highestUnlockedLevel, isDifficultyUnlocked } from './levelProgress'
+import { completeLevel, createLevelRandom, EMPTY_LEVEL_PROGRESS, getNextLevelSelection, highestUnlockedLevel, isDifficultyUnlocked } from './levelProgress'
 
 describe('ordered level progression', () => {
   it('only unlocks the next difficulty after ten levels', () => {
@@ -22,5 +22,11 @@ describe('ordered level progression', () => {
     const first = createLevelRandom('hard-7')
     const second = createLevelRandom('hard-7')
     expect([first(), first(), first()]).toEqual([second(), second(), second()])
+  })
+
+  it('advances levels and crosses difficulty boundaries', () => {
+    expect(getNextLevelSelection('easy', 4)).toEqual({ difficulty: 'easy', level: 5 })
+    expect(getNextLevelSelection('easy', 10)).toEqual({ difficulty: 'medium', level: 1 })
+    expect(getNextLevelSelection('expert', 10)).toBeNull()
   })
 })

@@ -43,3 +43,11 @@ export function completeLevel(progress: LevelProgress, difficulty: Difficulty, l
   if (safeLevel > highestUnlockedLevel(difficulty, progress)) return progress
   return { ...progress, [difficulty]: Math.max(progress[difficulty], safeLevel) }
 }
+
+export function getNextLevelSelection(difficulty: Difficulty, level: number) {
+  const safeLevel = Math.max(1, Math.min(LEVELS_PER_DIFFICULTY, Math.round(level)))
+  if (safeLevel < LEVELS_PER_DIFFICULTY) return { difficulty, level: safeLevel + 1 }
+  const difficultyIndex = DIFFICULTY_ORDER.indexOf(difficulty)
+  const nextDifficulty = DIFFICULTY_ORDER[difficultyIndex + 1]
+  return nextDifficulty ? { difficulty: nextDifficulty, level: 1 } : null
+}
