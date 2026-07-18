@@ -5,8 +5,7 @@
 - Source: https://www.kenney.nl/assets/castle-kit
 - License: CC0 1.0 Universal
 
-`finish/kenney-overhead.glb`, `finish/kenney-flag-checkers.glb`, and
-`finish/kenney-road-end.glb` are from Kenney's Racing Kit.
+`finish/kenney-flag-checkers.glb` is from Kenney's Racing Kit.
 
 - Source: https://kenney.nl/assets/racing-kit
 - License: CC0 1.0 Universal

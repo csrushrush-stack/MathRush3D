@@ -6,7 +6,7 @@ import {
   type LevelBalance,
 } from '../utils/gameBalance'
 import type { ObstacleType } from '../utils/obstacles'
-import { completeLevel, EMPTY_LEVEL_PROGRESS, type LevelProgress } from '../utils/levelProgress'
+import { completeLevel, EMPTY_LEVEL_PROGRESS, LEVELS_PER_DIFFICULTY, normalizeLevelProgress, type LevelProgress } from '../utils/levelProgress'
 
 export type GamePhase = 'home' | 'playing' | 'paused' | 'gameover' | 'win'
 export type RunStage = 'run' | 'battle' | 'meter' | 'boss' | 'bonus' | 'conversion' | 'complete'
@@ -207,7 +207,7 @@ export const useGameStore = create<GameState>()(
       setPhase: (phase) => set({ phase, isPaused: phase === 'paused' }),
       setPaused: (isPaused) => set({ isPaused }),
       setDifficulty: (difficulty) => set({ difficulty }),
-      setSelectedLevel: (selectedLevel) => set({ selectedLevel: Math.max(1, Math.min(10, Math.round(selectedLevel))) }),
+      setSelectedLevel: (selectedLevel) => set({ selectedLevel: Math.max(1, Math.min(LEVELS_PER_DIFFICULTY, Math.round(selectedLevel))) }),
       setBackendStatus: (backendStatus) => set({ backendStatus }),
 
       syncPlayer: (profile) => set((state) => ({
@@ -216,8 +216,8 @@ export const useGameStore = create<GameState>()(
         coins: profile.coins,
         bestScore: profile.bestScore,
         difficulty: profile.selectedDifficulty ?? state.difficulty,
-        selectedLevel: profile.selectedLevel ?? state.selectedLevel,
-        levelProgress: { ...state.levelProgress, ...profile.levelProgress },
+        selectedLevel: Math.max(1, Math.min(LEVELS_PER_DIFFICULTY, profile.selectedLevel ?? state.selectedLevel)),
+        levelProgress: normalizeLevelProgress({ ...state.levelProgress, ...profile.levelProgress }),
         selectedSkin: profile.selectedSkin ?? state.selectedSkin,
         ownedSkins: profile.ownedSkins ?? state.ownedSkins,
         settings: { ...state.settings, ...profile.settings },

@@ -5,13 +5,11 @@ export interface BossMeterSegment {
 }
 
 export const BOSS_METER_SEGMENTS: BossMeterSegment[] = [
-  { reward: 2, weight: 19, color: '#38bdf8' },
-  { reward: 5, weight: 17, color: '#22c55e' },
-  { reward: 10, weight: 11, color: '#facc15' },
-  { reward: 20, weight: 6, color: '#f43f5e' },
-  { reward: 10, weight: 11, color: '#facc15' },
-  { reward: 5, weight: 17, color: '#22c55e' },
-  { reward: 2, weight: 19, color: '#38bdf8' },
+  { reward: 3, weight: 28, color: '#0ea5e9' },
+  { reward: 8, weight: 17, color: '#22c55e' },
+  { reward: 20, weight: 10, color: '#f97316' },
+  { reward: 8, weight: 17, color: '#22c55e' },
+  { reward: 3, weight: 28, color: '#0ea5e9' },
 ]
 
 export function getBossMeterReward(position: number) {
@@ -23,4 +21,3 @@ export function getBossMeterReward(position: number) {
   }
   return BOSS_METER_SEGMENTS[BOSS_METER_SEGMENTS.length - 1].reward
 }
-

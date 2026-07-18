@@ -1,7 +1,7 @@
 import type { Difficulty } from '../store/useGameStore'
 
 export const DIFFICULTY_ORDER: Difficulty[] = ['easy', 'medium', 'hard', 'expert']
-export const LEVELS_PER_DIFFICULTY = 10
+export const LEVELS_PER_DIFFICULTY = 5
 
 export type LevelProgress = Record<Difficulty, number>
 
@@ -10,6 +10,16 @@ export const EMPTY_LEVEL_PROGRESS: LevelProgress = {
   medium: 0,
   hard: 0,
   expert: 0,
+}
+
+export function normalizeLevelProgress(progress: Partial<LevelProgress>): LevelProgress {
+  return DIFFICULTY_ORDER.reduce((normalized, difficulty) => {
+    normalized[difficulty] = Math.max(
+      0,
+      Math.min(LEVELS_PER_DIFFICULTY, Math.round(progress[difficulty] ?? 0)),
+    )
+    return normalized
+  }, { ...EMPTY_LEVEL_PROGRESS })
 }
 
 /** Stable level layouts: replaying a level keeps its gates and hazards familiar. */
@@ -39,9 +49,10 @@ export function highestUnlockedLevel(difficulty: Difficulty, progress: LevelProg
 }
 
 export function completeLevel(progress: LevelProgress, difficulty: Difficulty, level: number): LevelProgress {
+  const normalized = normalizeLevelProgress(progress)
   const safeLevel = Math.max(1, Math.min(LEVELS_PER_DIFFICULTY, Math.round(level)))
-  if (safeLevel > highestUnlockedLevel(difficulty, progress)) return progress
-  return { ...progress, [difficulty]: Math.max(progress[difficulty], safeLevel) }
+  if (safeLevel > highestUnlockedLevel(difficulty, normalized)) return normalized
+  return { ...normalized, [difficulty]: Math.max(normalized[difficulty], safeLevel) }
 }
 
 export function getNextLevelSelection(difficulty: Difficulty, level: number) {

@@ -50,19 +50,26 @@ const METER_RANGES = (() => {
   })
 })()
 
+const METER_CENTER_X = 120
+const METER_CENTER_Y = 126
+
 function meterPoint(angle: number, radius: number) {
   const radians = angle * Math.PI / 180
-  return { x: 100 + Math.cos(radians) * radius, y: 100 + Math.sin(radians) * radius }
+  return {
+    x: METER_CENTER_X + Math.cos(radians) * radius,
+    y: METER_CENTER_Y + Math.sin(radians) * radius,
+  }
 }
 
 function meterSegmentPath(startPercent: number, endPercent: number) {
-  const startAngle = 180 + startPercent * 1.8
-  const endAngle = 180 + endPercent * 1.8
-  const outerStart = meterPoint(startAngle, 86)
-  const outerEnd = meterPoint(endAngle, 86)
-  const innerEnd = meterPoint(endAngle, 48)
-  const innerStart = meterPoint(startAngle, 48)
-  return `M ${outerStart.x} ${outerStart.y} A 86 86 0 0 1 ${outerEnd.x} ${outerEnd.y} L ${innerEnd.x} ${innerEnd.y} A 48 48 0 0 0 ${innerStart.x} ${innerStart.y} Z`
+  const gap = 0.7
+  const startAngle = 180 + startPercent * 1.8 + gap
+  const endAngle = 180 + endPercent * 1.8 - gap
+  const outerStart = meterPoint(startAngle, 108)
+  const outerEnd = meterPoint(endAngle, 108)
+  const innerEnd = meterPoint(endAngle, 61)
+  const innerStart = meterPoint(startAngle, 61)
+  return `M ${outerStart.x} ${outerStart.y} A 108 108 0 0 1 ${outerEnd.x} ${outerEnd.y} L ${innerEnd.x} ${innerEnd.y} A 61 61 0 0 0 ${innerStart.x} ${innerStart.y} Z`
 }
 
 function BossPowerMeter({ onComplete }: { onComplete: (boost: number) => void }) {
@@ -95,32 +102,36 @@ function BossPowerMeter({ onComplete }: { onComplete: (boost: number) => void })
     completionTimer.current = window.setTimeout(() => onComplete(reward), 700)
   }
   const pointerAngle = 180 + position * 180
-  const pointerEnd = meterPoint(pointerAngle, 72)
+  const pointerEnd = meterPoint(pointerAngle, 96)
 
   return (
-    <div className="absolute inset-0 z-30 flex items-center justify-center pointer-events-auto" style={{ background: 'rgba(2,6,23,0.68)', backdropFilter: 'blur(7px)' }}>
-      <button type="button" onClick={lockMeter} className="modal-enter flex flex-col items-center rounded-3xl" style={{ width: '88%', maxWidth: 340, padding: '22px 18px 18px', background: 'linear-gradient(160deg,rgba(30,41,89,0.98),rgba(76,29,149,0.96))', border: '2px solid rgba(216,180,254,0.7)', boxShadow: '0 20px 70px rgba(0,0,0,0.7),0 0 34px rgba(168,85,247,0.35)' }}>
-        <span style={{ color: '#f5d0fe', fontSize: 11, fontWeight: 900, letterSpacing: '0.18em' }}>BOSS BOOST</span>
-        <span style={{ color: '#fff', fontSize: 22, fontWeight: 900, marginTop: 3 }}>Lock your crowd bonus</span>
-        <svg viewBox="0 0 200 110" style={{ width: '100%', marginTop: 12, overflow: 'visible' }} aria-label="Boss crowd bonus meter">
+    <div className="absolute inset-0 z-30 flex items-center justify-center pointer-events-auto" style={{ background: 'rgba(2,6,23,0.78)', backdropFilter: 'blur(8px)' }}>
+      <div className="modal-enter flex flex-col items-center rounded-3xl" style={{ width: '90%', maxWidth: 370, padding: '22px 18px 18px', background: 'linear-gradient(165deg,#172554 0%,#111827 60%,#0f172a 100%)', border: '2px solid rgba(56,189,248,0.72)', boxShadow: '0 22px 70px rgba(0,0,0,0.72),0 0 30px rgba(14,165,233,0.25),inset 0 1px 0 rgba(255,255,255,0.12)' }}>
+        <span style={{ color: '#7dd3fc', fontSize: 10, fontWeight: 900, letterSpacing: '0.22em', padding: '5px 11px', borderRadius: 999, background: 'rgba(14,165,233,0.14)', border: '1px solid rgba(125,211,252,0.34)' }}>FINAL BOSS</span>
+        <span style={{ color: '#fff', fontSize: 24, fontWeight: 950, marginTop: 8, letterSpacing: '-0.025em' }}>Stop the needle</span>
+        <span style={{ color: '#94a3b8', fontSize: 11, fontWeight: 700, marginTop: 2 }}>Land near the center for the biggest boost</span>
+        <svg viewBox="0 0 240 142" style={{ width: '100%', marginTop: 16, overflow: 'visible' }} aria-label="Boss crowd bonus meter">
+          <path d="M 12 126 A 108 108 0 0 1 228 126" fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth="53" />
           {METER_RANGES.map((segment) => {
             const middle = (segment.start + segment.end) / 2
-            const label = meterPoint(180 + middle * 1.8, 67)
+            const label = meterPoint(180 + middle * 1.8, 84)
             return (
               <g key={`${segment.reward}-${segment.start}`}>
-                <path d={meterSegmentPath(segment.start, segment.end)} fill={segment.color} stroke="#0f172a" strokeWidth="1.4" />
-                <text x={label.x} y={label.y + 3} fill="#fff" textAnchor="middle" fontSize={segment.reward === 20 ? 8 : 7} fontWeight="900">+{segment.reward}</text>
+                <path d={meterSegmentPath(segment.start, segment.end)} fill={segment.color} stroke="rgba(255,255,255,0.72)" strokeWidth="1.2" />
+                <circle cx={label.x} cy={label.y} r="15" fill="rgba(15,23,42,0.74)" stroke="rgba(255,255,255,0.75)" strokeWidth="1.4" />
+                <text x={label.x} y={label.y + 4.5} fill="#fff" textAnchor="middle" fontSize="13" fontWeight="950" style={{ paintOrder: 'stroke', stroke: 'rgba(15,23,42,0.8)', strokeWidth: 1.5 }}>+{segment.reward}</text>
               </g>
             )
           })}
-          <circle cx="100" cy="100" r="10" fill="#f8fafc" stroke="#312e81" strokeWidth="4" />
-          <line x1="100" y1="100" x2={pointerEnd.x} y2={pointerEnd.y} stroke="#fff" strokeWidth="4" strokeLinecap="round" style={{ filter: 'drop-shadow(0 0 5px #fff)' }} />
+          <line x1={METER_CENTER_X} y1={METER_CENTER_Y} x2={pointerEnd.x} y2={pointerEnd.y} stroke="#fef08a" strokeWidth="6" strokeLinecap="round" style={{ filter: 'drop-shadow(0 0 6px #facc15)' }} />
+          <circle cx={METER_CENTER_X} cy={METER_CENTER_Y} r="13" fill="#f8fafc" stroke="#0ea5e9" strokeWidth="5" />
+          <circle cx={METER_CENTER_X} cy={METER_CENTER_Y} r="4" fill="#0f172a" />
         </svg>
-        <span style={{ minHeight: 30, color: lockedReward === null ? '#ddd6fe' : '#fef08a', fontWeight: 900, fontSize: lockedReward === null ? 13 : 24, letterSpacing: lockedReward === null ? '0.12em' : '0.04em' }}>
-          {lockedReward === null ? 'TAP TO STOP' : `+${lockedReward} CROWD!`}
-        </span>
-        <span style={{ color: 'rgba(221,214,254,0.7)', fontSize: 10, marginTop: 4 }}>The biggest bonus has the smallest target.</span>
-      </button>
+        <button id="boss-meter-stop-button" type="button" onClick={lockMeter} disabled={lockedReward !== null} style={{ width: '100%', minHeight: 56, border: '1px solid rgba(254,240,138,0.65)', borderRadius: 16, color: '#fff', background: lockedReward === null ? 'linear-gradient(135deg,#f97316,#ef4444)' : 'linear-gradient(135deg,#16a34a,#059669)', boxShadow: lockedReward === null ? '0 9px 0 #9a3412,0 14px 24px rgba(249,115,22,0.32)' : '0 7px 0 #065f46,0 12px 20px rgba(16,185,129,0.25)', fontSize: lockedReward === null ? 17 : 21, fontWeight: 950, letterSpacing: lockedReward === null ? '0.11em' : '0.02em', cursor: lockedReward === null ? 'pointer' : 'default', transform: 'translateY(-2px)' }}>
+          {lockedReward === null ? 'STOP NEEDLE' : `+${lockedReward} CROWD LOCKED`}
+        </button>
+        <span style={{ color: '#64748b', fontSize: 10, fontWeight: 700, marginTop: 13 }}>The orange center is the hardest target.</span>
+      </div>
     </div>
   )
 }

@@ -10,7 +10,7 @@ export const settingsSchema = z.object({
 })
 export const progressSchema = z.object({
   selectedDifficulty: difficultySchema,
-  selectedLevel: z.number().int().min(1).max(10).optional(),
+  selectedLevel: z.number().int().min(1).max(5).optional(),
 })
 
 export const sessionSchema = z.object({
@@ -59,7 +59,7 @@ export const runSchema = z.object({
   clientRunId: z.string().uuid(),
   playerId: z.string().uuid(),
   difficulty: difficultySchema,
-  level: z.number().int().min(1).max(10),
+  level: z.number().int().min(1).max(5),
   status: z.enum(['won', 'lost']),
   startedAt: z.string().datetime(),
   endedAt: z.string().datetime(),

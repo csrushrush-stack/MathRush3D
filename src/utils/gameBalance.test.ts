@@ -62,9 +62,9 @@ describe('level balance', () => {
     }
   })
 
-  it('guarantees a healthy post-boss reserve across all 40 levels', () => {
+  it('guarantees a healthy post-boss reserve across all 20 levels', () => {
     for (const difficulty of ['easy', 'medium', 'hard', 'expert']) {
-      for (let level = 1; level <= 10; level += 1) {
+      for (let level = 1; level <= 5; level += 1) {
         for (const sample of [0.01, 0.19, 0.37, 0.55, 0.73, 0.91]) {
           const gates = generateGatePairs(difficulty, () => sample)
           const obstacles = balanceObstaclesForRoute(

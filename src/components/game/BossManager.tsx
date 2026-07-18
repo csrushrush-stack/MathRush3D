@@ -18,9 +18,7 @@ export const BOSS_WORLD_Z = -275
 export const BOSS_METER_WORLD_Z = -265
 const BOSS_FIGHT_SECONDS = 3.4
 const BOSS_MODEL = '/models/boss/quaternius-orc-boss.glb'
-const FINISH_OVERHEAD_MODEL = '/models/finish/kenney-overhead.glb'
 const FINISH_FLAG_MODEL = '/models/finish/kenney-flag-checkers.glb'
-const FINISH_ROAD_END_MODEL = '/models/finish/kenney-road-end.glb'
 
 function createTextTexture(title: string, subtitle: string, accent: string) {
   const canvas = document.createElement('canvas')
@@ -125,42 +123,86 @@ function BossCharacter({ defeated, fighting }: { defeated: boolean; fighting: bo
 useGLTF.preload(BOSS_MODEL)
 
 function FinishZone() {
-  const overheadSource = useGLTF(FINISH_OVERHEAD_MODEL).scene
   const flagSource = useGLTF(FINISH_FLAG_MODEL).scene
-  const roadEndSource = useGLTF(FINISH_ROAD_END_MODEL).scene
-  const overhead = useMemo(() => overheadSource.clone(true), [overheadSource])
   const leftFlag = useMemo(() => flagSource.clone(true), [flagSource])
   const rightFlag = useMemo(() => flagSource.clone(true), [flagSource])
-  const roadEnd = useMemo(() => roadEndSource.clone(true), [roadEndSource])
+  const finishZ = -344.25
 
   return (
     <group>
-      <primitive object={overhead} position={[-2, 0, -344.55]} scale={4} />
-      <primitive object={leftFlag} position={[-2.32, 0, -343.7]} scale={2.1} />
-      <primitive object={rightFlag} position={[2.32, 0, -343.7]} scale={2.1} rotation={[0, Math.PI, 0]} />
-      <primitive object={roadEnd} position={[-2.5, 0.015, -352]} scale={5} />
-      {Array.from({ length: 20 }, (_, index) => {
-        const column = index % 10
-        const row = Math.floor(index / 10)
+      <mesh position={[0, 0.025, -348.1]} receiveShadow>
+        <boxGeometry args={[5.35, 0.12, 7.55]} />
+        <meshStandardMaterial color="#172554" roughness={0.64} metalness={0.12} />
+      </mesh>
+      <mesh position={[0, -0.35, -351.9]} receiveShadow>
+        <boxGeometry args={[5.35, 0.75, 0.24]} />
+        <meshStandardMaterial color="#020617" roughness={0.72} />
+      </mesh>
+
+      {Array.from({ length: 24 }, (_, index) => {
+        const column = index % 12
+        const row = Math.floor(index / 12)
         return (
-          <mesh key={index} rotation={[-Math.PI / 2, 0, 0]} position={[-2.25 + column * 0.5, 0.035, -343.75 - row * 0.45]}>
-            <planeGeometry args={[0.5, 0.45]} />
+          <mesh key={index} rotation={[-Math.PI / 2, 0, 0]} position={[-2.29 + column * 0.416, 0.095, finishZ - 0.23 - row * 0.46]}>
+            <planeGeometry args={[0.418, 0.46]} />
             <meshBasicMaterial color={(column + row) % 2 === 0 ? '#f8fafc' : '#111827'} />
           </mesh>
         )
       })}
-      <TextSign title="FINISH" subtitle="" accent="#facc15" position={[0, 2.05, -343.72]} size={[2.25, 0.88]} />
-      <group position={[0, 0.28, -353.4]}>
-        <mesh position={[0, 0.35, 0]}><boxGeometry args={[5.4, 0.7, 0.55]} /><meshStandardMaterial color="#0f172a" emissive="#7c3aed" emissiveIntensity={0.35} /></mesh>
-        <TextSign title="VICTORY" subtitle="TRACK COMPLETE" accent="#22d3ee" position={[0, 1.15, 0.3]} size={[3.4, 1.35]} />
+
+      {[-2.52, 2.52].map((x) => (
+        <group key={x} position={[x, 0, finishZ]}>
+          <mesh position={[0, 0.17, 0]} castShadow>
+            <boxGeometry args={[0.72, 0.32, 0.78]} />
+            <meshStandardMaterial color="#f59e0b" emissive="#f59e0b" emissiveIntensity={0.28} metalness={0.72} roughness={0.24} />
+          </mesh>
+          <mesh position={[0, 1.58, 0]} castShadow>
+            <boxGeometry args={[0.44, 2.7, 0.52]} />
+            <meshStandardMaterial color="#172554" emissive="#2563eb" emissiveIntensity={0.32} metalness={0.62} roughness={0.28} />
+          </mesh>
+          {[0.55, 1.42, 2.3].map((y) => (
+            <mesh key={y} position={[0, y, 0.005]} castShadow>
+              <boxGeometry args={[0.53, 0.14, 0.58]} />
+              <meshStandardMaterial color="#fbbf24" emissive="#f59e0b" emissiveIntensity={0.5} metalness={0.78} roughness={0.2} />
+            </mesh>
+          ))}
+        </group>
+      ))}
+
+      <mesh position={[0, 2.92, finishZ]} castShadow>
+        <boxGeometry args={[5.48, 0.66, 0.58]} />
+        <meshStandardMaterial color="#172554" emissive="#2563eb" emissiveIntensity={0.28} metalness={0.62} roughness={0.25} />
+      </mesh>
+      <mesh position={[0, 3.29, finishZ]} castShadow>
+        <boxGeometry args={[3.42, 0.14, 0.5]} />
+        <meshStandardMaterial color="#fbbf24" emissive="#f59e0b" emissiveIntensity={0.65} metalness={0.8} roughness={0.18} />
+      </mesh>
+      <TextSign title="FINISH" subtitle="" accent="#fbbf24" position={[0, 2.92, finishZ + 0.3]} size={[3.55, 0.78]} />
+
+      <primitive object={leftFlag} position={[-2.9, 0.12, finishZ + 0.06]} scale={1.65} rotation={[0, 0.16, 0]} />
+      <primitive object={rightFlag} position={[2.9, 0.12, finishZ + 0.06]} scale={1.65} rotation={[0, Math.PI - 0.16, 0]} />
+
+      <group position={[0, 0.08, -349.35]}>
+        <mesh position={[0, 0.03, 0]} receiveShadow>
+          <cylinderGeometry args={[2.22, 2.38, 0.14, 32]} />
+          <meshStandardMaterial color="#312e81" emissive="#7c3aed" emissiveIntensity={0.32} metalness={0.45} roughness={0.28} />
+        </mesh>
+        <mesh position={[0, 0.13, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[1.82, 2.2, 32]} />
+          <meshBasicMaterial color="#fbbf24" toneMapped={false} />
+        </mesh>
+        {[-1.15, 0, 1.15].map((x) => (
+          <mesh key={x} position={[x, 0.24, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+            <circleGeometry args={[0.14, 16]} />
+            <meshBasicMaterial color="#fde68a" toneMapped={false} />
+          </mesh>
+        ))}
       </group>
     </group>
   )
 }
 
-useGLTF.preload(FINISH_OVERHEAD_MODEL)
 useGLTF.preload(FINISH_FLAG_MODEL)
-useGLTF.preload(FINISH_ROAD_END_MODEL)
 
 function MultiplierGate({ tier, earned }: {
   tier: (typeof MULTIPLIER_TIERS)[number]

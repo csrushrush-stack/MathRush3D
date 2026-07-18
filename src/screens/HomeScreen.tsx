@@ -428,7 +428,7 @@ function DiffBtn({ diff, active, locked, completed, onClick }: { diff: DiffConfi
       </div>
       {/* Sub */}
       <div className="font-semibold leading-none mt-1" style={{ fontSize: 8, color: 'rgba(255,255,255,0.78)' }}>
-        {locked ? 'LOCKED' : `${completed}/${LEVELS_PER_DIFFICULTY}`}
+        {locked ? 'LOCKED' : `${Math.min(completed, LEVELS_PER_DIFFICULTY)}/${LEVELS_PER_DIFFICULTY}`}
       </div>
     </button>
   )
@@ -783,7 +783,7 @@ export function HomeScreen({ onLogout }: { onLogout: () => void }) {
 
             <div style={{ marginBottom: 12, padding: '10px 12px', borderRadius: 16, background: 'rgba(7,18,52,0.78)', border: '1px solid rgba(125,211,252,0.28)' }}>
               <div className="flex items-center justify-between" style={{ marginBottom: 8, color: '#e0f2fe', fontSize: 10, fontWeight: 900, letterSpacing: '0.12em' }}>
-                <span>SELECT LEVEL</span><span>{levelProgress[difficulty]}/10 CLEARED</span>
+                <span>SELECT LEVEL</span><span>{Math.min(levelProgress[difficulty], LEVELS_PER_DIFFICULTY)}/{LEVELS_PER_DIFFICULTY} CLEARED</span>
               </div>
               <div className="grid grid-cols-5" style={{ gap: 6 }}>
                 {Array.from({ length: LEVELS_PER_DIFFICULTY }, (_, index) => index + 1).map((level) => {

@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { completeLevel, createLevelRandom, EMPTY_LEVEL_PROGRESS, getNextLevelSelection, highestUnlockedLevel, isDifficultyUnlocked } from './levelProgress'
+import { completeLevel, createLevelRandom, EMPTY_LEVEL_PROGRESS, getNextLevelSelection, highestUnlockedLevel, isDifficultyUnlocked, normalizeLevelProgress } from './levelProgress'
 
 describe('ordered level progression', () => {
-  it('only unlocks the next difficulty after ten levels', () => {
+  it('only unlocks the next difficulty after five levels', () => {
     expect(isDifficultyUnlocked('easy', EMPTY_LEVEL_PROGRESS)).toBe(true)
     expect(isDifficultyUnlocked('medium', EMPTY_LEVEL_PROGRESS)).toBe(false)
-    const completedEasy = { ...EMPTY_LEVEL_PROGRESS, easy: 10 }
+    const completedEasy = { ...EMPTY_LEVEL_PROGRESS, easy: 5 }
     expect(isDifficultyUnlocked('medium', completedEasy)).toBe(true)
     expect(isDifficultyUnlocked('hard', completedEasy)).toBe(false)
   })
@@ -18,6 +18,15 @@ describe('ordered level progression', () => {
     expect(highestUnlockedLevel('easy', levelOne)).toBe(2)
   })
 
+  it('safely caps progress created by the former ten-level format', () => {
+    expect(normalizeLevelProgress({ ...EMPTY_LEVEL_PROGRESS, easy: 10, medium: 7 })).toEqual({
+      easy: 5,
+      medium: 5,
+      hard: 0,
+      expert: 0,
+    })
+  })
+
   it('keeps a level layout deterministic', () => {
     const first = createLevelRandom('hard-7')
     const second = createLevelRandom('hard-7')
@@ -26,7 +35,7 @@ describe('ordered level progression', () => {
 
   it('advances levels and crosses difficulty boundaries', () => {
     expect(getNextLevelSelection('easy', 4)).toEqual({ difficulty: 'easy', level: 5 })
-    expect(getNextLevelSelection('easy', 10)).toEqual({ difficulty: 'medium', level: 1 })
-    expect(getNextLevelSelection('expert', 10)).toBeNull()
+    expect(getNextLevelSelection('easy', 5)).toEqual({ difficulty: 'medium', level: 1 })
+    expect(getNextLevelSelection('expert', 5)).toBeNull()
   })
 })
