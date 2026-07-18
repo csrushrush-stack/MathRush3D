@@ -3,6 +3,7 @@ import { applyGateOption, computeBestRoute, generateGatePairs } from './mathGate
 import { generateObstacles } from './obstacles'
 import {
   calculateFinishMultiplier,
+  balanceObstaclesForRoute,
   calculateBonusPoints,
   calculateBonusStageSacrifice,
   calculateLevelBalance,
@@ -16,7 +17,7 @@ describe('level balance', () => {
       const gates = generateGatePairs(difficulty, () => 0.42)
       expect(gates).toHaveLength(10)
       for (const sample of [0.05, 0.25, 0.45, 0.65, 0.85]) {
-        const obstacles = generateObstacles(difficulty, () => sample)
+        const obstacles = balanceObstaclesForRoute(gates, generateObstacles(difficulty, () => sample), difficulty)
         const balance = calculateLevelBalance(gates, obstacles)
         expect(obstacles).toHaveLength(5)
         expect(obstacles.some((obstacle) => obstacle.type === 'enemy')).toBe(true)
@@ -40,7 +41,7 @@ describe('level balance', () => {
     for (const difficulty of ['easy', 'medium', 'hard', 'expert']) {
       for (const sample of [0.05, 0.25, 0.45, 0.65, 0.85]) {
         const gates = generateGatePairs(difficulty, () => sample)
-        const obstacles = generateObstacles(difficulty, () => sample)
+        const obstacles = balanceObstaclesForRoute(gates, generateObstacles(difficulty, () => sample), difficulty)
         let crowd = 1
         let gateIndex = 0
 
@@ -59,6 +60,35 @@ describe('level balance', () => {
         }
       }
     }
+  })
+
+  it('guarantees a healthy post-boss reserve across all 40 levels', () => {
+    for (const difficulty of ['easy', 'medium', 'hard', 'expert']) {
+      for (let level = 1; level <= 10; level += 1) {
+        for (const sample of [0.01, 0.19, 0.37, 0.55, 0.73, 0.91]) {
+          const gates = generateGatePairs(difficulty, () => sample)
+          const obstacles = balanceObstaclesForRoute(
+            gates,
+            generateObstacles(difficulty, () => sample, level),
+            difficulty,
+            level,
+          )
+          const balance = calculateLevelBalance(gates, obstacles)
+          expect(balance.realisticMaxCrowd - balance.bossHealth).toBeGreaterThanOrEqual(
+            Math.ceil(balance.realisticMaxCrowd * 0.4),
+          )
+        }
+      }
+    }
+  })
+
+  it('uses a distinct obstacle family for each difficulty', () => {
+    const types = (difficulty: string) => new Set(generateObstacles(difficulty, () => 0.2).map((item) => item.type))
+    expect(types('easy').has('cones')).toBe(true)
+    expect(types('medium').has('hammer')).toBe(true)
+    expect(types('hard').has('pit')).toBe(true)
+    expect(types('hard').has('spinner')).toBe(true)
+    expect(types('expert').has('crusher')).toBe(true)
   })
 })
 

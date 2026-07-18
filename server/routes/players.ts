@@ -15,6 +15,11 @@ export async function readProfile(client: PoolClient, playerId: string) {
       progress.coins,
       progress.best_score,
       progress.selected_difficulty,
+      progress.selected_level,
+      progress.easy_levels_completed,
+      progress.medium_levels_completed,
+      progress.hard_levels_completed,
+      progress.expert_levels_completed,
       progress.games_played,
       progress.games_won,
       progress.total_stars,
@@ -43,6 +48,13 @@ export async function readProfile(client: PoolClient, playerId: string) {
     bestScore: row.best_score,
     selectedSkin: row.selected_skin,
     selectedDifficulty: row.selected_difficulty,
+    selectedLevel: row.selected_level,
+    levelProgress: {
+      easy: row.easy_levels_completed,
+      medium: row.medium_levels_completed,
+      hard: row.hard_levels_completed,
+      expert: row.expert_levels_completed,
+    },
     ownedSkins: row.owned_skins,
     settings: {
       music: row.music,
@@ -110,7 +122,7 @@ playersRouter.get('/:playerId/stats', async (request, response) => {
       return
     }
     const recent = await client.query(`
-      SELECT id, difficulty, status, score, distance, multiplier, stars, ended_at
+      SELECT id, difficulty, level, status, score, distance, multiplier, stars, ended_at
       FROM game_runs
       WHERE player_id = $1
       ORDER BY ended_at DESC
@@ -151,15 +163,17 @@ playersRouter.patch('/:playerId/settings', async (request, response) => {
 playersRouter.patch('/:playerId/progress', async (request, response) => {
   const input = progressSchema.parse(request.body)
   const result = await pool.query(`
-    UPDATE player_progress SET selected_difficulty = $2
+    UPDATE player_progress SET
+      selected_difficulty = $2,
+      selected_level = COALESCE($3, selected_level)
     WHERE player_id = $1
-    RETURNING selected_difficulty
-  `, [request.params.playerId, input.selectedDifficulty])
+    RETURNING selected_difficulty, selected_level
+  `, [request.params.playerId, input.selectedDifficulty, input.selectedLevel ?? null])
   if (!result.rowCount) {
     response.status(404).json({ error: 'Player not found' })
     return
   }
-  response.json({ selectedDifficulty: result.rows[0].selected_difficulty })
+  response.json({ selectedDifficulty: result.rows[0].selected_difficulty, selectedLevel: result.rows[0].selected_level })
 })
 
 playersRouter.post('/:playerId/skins/:skinId/purchase', async (request, response) => {

@@ -27,12 +27,14 @@ import { ObstacleManager }  from './ObstacleManager'
 import { BossManager }      from './BossManager'
 import { generateGatePairs } from '../../utils/mathGates'
 import { generateObstacles } from '../../utils/obstacles'
-import { calculateLevelBalance } from '../../utils/gameBalance'
+import { balanceObstaclesForRoute, calculateLevelBalance } from '../../utils/gameBalance'
 import { useGameStore } from '../../store/useGameStore'
 import type { CrowdController } from './CrowdRuntime'
+import { createLevelRandom } from '../../utils/levelProgress'
 
 interface GameSceneProps {
   difficulty: string
+  level: number
   isPaused:   boolean
   onDistanceUpdate?: (dist: number) => void
 }
@@ -73,6 +75,7 @@ const LEVEL_THEMES: Record<string, LevelTheme> = {
 
 export function GameScene({
   difficulty,
+  level,
   isPaused,
   onDistanceUpdate,
 }: GameSceneProps) {
@@ -84,9 +87,19 @@ export function GameScene({
   const cameraShakeRef = useRef<number>(0)
   const reducedEffects = useGameStore((state) => state.settings.reducedEffects)
   const theme = LEVEL_THEMES[difficulty] ?? LEVEL_THEMES.medium
-  const gates = useMemo(() => generateGatePairs(difficulty), [difficulty])
+  const gates = useMemo(
+    () => generateGatePairs(difficulty, createLevelRandom(`${difficulty}-${level}-gates`)),
+    [difficulty, level],
+  )
   const gateZs = useMemo(() => gates.map((gate) => gate.worldZ), [gates])
-  const obstacles = useMemo(() => generateObstacles(difficulty), [difficulty])
+  const rawObstacles = useMemo(
+    () => generateObstacles(difficulty, createLevelRandom(`${difficulty}-${level}-obstacles`), level),
+    [difficulty, level],
+  )
+  const obstacles = useMemo(
+    () => balanceObstaclesForRoute(gates, rawObstacles, difficulty, level),
+    [difficulty, gates, level, rawObstacles],
+  )
   const balance = useMemo(
     () => calculateLevelBalance(gates, obstacles),
     [gates, obstacles],

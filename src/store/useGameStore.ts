@@ -6,6 +6,7 @@ import {
   type LevelBalance,
 } from '../utils/gameBalance'
 import type { ObstacleType } from '../utils/obstacles'
+import { completeLevel, EMPTY_LEVEL_PROGRESS, type LevelProgress } from '../utils/levelProgress'
 
 export type GamePhase = 'home' | 'playing' | 'paused' | 'gameover' | 'win'
 export type RunStage = 'run' | 'battle' | 'boss' | 'bonus' | 'conversion' | 'complete'
@@ -55,6 +56,8 @@ interface GameState {
   phase: GamePhase
   runStage: RunStage
   difficulty: Difficulty
+  selectedLevel: number
+  levelProgress: LevelProgress
   gameKey: number
   isPaused: boolean
 
@@ -93,6 +96,7 @@ interface GameState {
   setPhase: (phase: GamePhase) => void
   setPaused: (paused: boolean) => void
   setDifficulty: (difficulty: Difficulty) => void
+  setSelectedLevel: (level: number) => void
   setBackendStatus: (status: BackendStatus) => void
   syncPlayer: (profile: {
     id: string
@@ -100,6 +104,8 @@ interface GameState {
     coins: number
     bestScore: number
     selectedDifficulty?: Difficulty
+    selectedLevel?: number
+    levelProgress?: Partial<LevelProgress>
     selectedSkin?: string
     ownedSkins?: string[]
     settings?: Partial<GameSettings>
@@ -156,7 +162,9 @@ export const useGameStore = create<GameState>()(
     (set, get) => ({
       phase: 'home',
       runStage: 'run',
-      difficulty: 'medium',
+      difficulty: 'easy',
+      selectedLevel: 1,
+      levelProgress: EMPTY_LEVEL_PROGRESS,
       gameKey: 0,
       isPaused: false,
 
@@ -195,6 +203,7 @@ export const useGameStore = create<GameState>()(
       setPhase: (phase) => set({ phase, isPaused: phase === 'paused' }),
       setPaused: (isPaused) => set({ isPaused }),
       setDifficulty: (difficulty) => set({ difficulty }),
+      setSelectedLevel: (selectedLevel) => set({ selectedLevel: Math.max(1, Math.min(10, Math.round(selectedLevel))) }),
       setBackendStatus: (backendStatus) => set({ backendStatus }),
 
       syncPlayer: (profile) => set((state) => ({
@@ -203,6 +212,8 @@ export const useGameStore = create<GameState>()(
         coins: profile.coins,
         bestScore: profile.bestScore,
         difficulty: profile.selectedDifficulty ?? state.difficulty,
+        selectedLevel: profile.selectedLevel ?? state.selectedLevel,
+        levelProgress: { ...state.levelProgress, ...profile.levelProgress },
         selectedSkin: profile.selectedSkin ?? state.selectedSkin,
         ownedSkins: profile.ownedSkins ?? state.ownedSkins,
         settings: { ...state.settings, ...profile.settings },
@@ -219,6 +230,8 @@ export const useGameStore = create<GameState>()(
         selectedSkin: 'default',
         ownedSkins: ['default'],
         lifetimeStats: defaultStats,
+        selectedLevel: 1,
+        levelProgress: EMPTY_LEVEL_PROGRESS,
       }),
 
       addCoins: (amount) => set((state) => ({ coins: Math.max(0, state.coins + amount) })),
@@ -294,6 +307,7 @@ export const useGameStore = create<GameState>()(
       })),
       finishRun: () => {
         const state = get()
+        const levelProgress = completeLevel(state.levelProgress, state.difficulty, state.selectedLevel)
         const rewards = calculateRunRewards({
           actualMathGain: state.actualMathGain,
           distance: state.runDistance,
@@ -309,6 +323,7 @@ export const useGameStore = create<GameState>()(
           bestScore: Math.max(state.bestScore, rewards.score),
           coins: state.coins + rewards.coins,
           coinsEarned: rewards.coins,
+          levelProgress,
           lifetimeStats: {
             gamesPlayed: state.lifetimeStats.gamesPlayed + 1,
             gamesWon: state.lifetimeStats.gamesWon + 1,
@@ -375,6 +390,8 @@ export const useGameStore = create<GameState>()(
       name: 'math-rush-player-v2',
       partialize: (state) => ({
         difficulty: state.difficulty,
+        selectedLevel: state.selectedLevel,
+        levelProgress: state.levelProgress,
         playerId: state.playerId,
         displayName: state.displayName,
         bestScore: state.bestScore,

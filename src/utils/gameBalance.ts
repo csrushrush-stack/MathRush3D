@@ -1,11 +1,11 @@
 import type { GatePairData } from './mathGates'
-import { computeBestRoute } from './mathGates'
+import { applyGateOption, computeBestRoute } from './mathGates'
 import type { ObstacleData } from './obstacles'
 import { computeMandatoryObstacleDamage } from './obstacles'
 export { calculateRunRewards } from '../../shared/gameRules'
 
 export const STARTING_CROWD = 1
-export const BOSS_HEALTH_RATIO = 0.7
+export const BOSS_HEALTH_RATIO = 0.52
 
 export const MULTIPLIER_TIERS = [
   { multiplier: 1, worldZ: -294, minPerformance: 0 },
@@ -22,6 +22,38 @@ export interface LevelBalance {
   mandatoryObstacleDamage: number
   realisticMaxCrowd: number
   bossHealth: number
+}
+
+const ENEMY_DAMAGE_RATIO = { easy: 0.22, medium: 0.28, hard: 0.34, expert: 0.4 } as const
+
+/** Caps every enemy from the crowd actually achievable at that checkpoint. */
+export function balanceObstaclesForRoute(
+  gates: GatePairData[],
+  obstacles: ObstacleData[],
+  difficulty: string,
+  level = 1,
+) {
+  const ratio = ENEMY_DAMAGE_RATIO[difficulty as keyof typeof ENEMY_DAMAGE_RATIO] ?? ENEMY_DAMAGE_RATIO.hard
+  const levelBonus = Math.max(0, Math.min(9, level - 1)) * 0.006
+  let crowd = STARTING_CROWD
+  let gateIndex = 0
+
+  return obstacles.map((obstacle) => {
+    while (gateIndex < gates.length && gates[gateIndex].worldZ > obstacle.worldZ) {
+      const gate = gates[gateIndex]
+      crowd = Math.max(applyGateOption(crowd, gate.left), applyGateOption(crowd, gate.right))
+      gateIndex += 1
+    }
+    if (obstacle.type !== 'enemy') return obstacle
+    const reserve = Math.max(5, Math.ceil(crowd * 0.38))
+    const checkpointCap = Math.max(1, Math.min(
+      crowd - reserve,
+      Math.floor(crowd * (ratio + levelBonus)),
+    ))
+    const enemyStrength = Math.min(obstacle.enemyStrength, checkpointCap)
+    crowd = Math.max(1, crowd - enemyStrength)
+    return { ...obstacle, enemyStrength }
+  })
 }
 
 export function calculateLevelBalance(

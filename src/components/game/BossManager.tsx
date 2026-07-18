@@ -1,6 +1,8 @@
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useFrame } from '@react-three/fiber'
+import { useAnimations, useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
+import { clone } from 'three/examples/jsm/utils/SkeletonUtils.js'
 import { useGameStore } from '../../store/useGameStore'
 import { audioManager } from '../../utils/audioManager'
 import {
@@ -13,7 +15,8 @@ import {
 import type { CrowdController } from './CrowdRuntime'
 
 export const BOSS_WORLD_Z = -275
-const BOSS_FIGHT_SECONDS = 1.15
+const BOSS_FIGHT_SECONDS = 3.4
+const BOSS_MODEL = '/models/boss/quaternius-orc-boss.glb'
 
 function createTextTexture(title: string, subtitle: string, accent: string) {
   const canvas = document.createElement('canvas')
@@ -66,52 +69,56 @@ function TextSign({ title, subtitle, accent, position, size = [3.2, 1.6] }: {
   )
 }
 
-function BossCharacter({ defeated }: { defeated: boolean }) {
+function BossCharacter({ defeated, fighting }: { defeated: boolean; fighting: boolean }) {
   const groupRef = useRef<THREE.Group>(null)
-  const scale = useRef(1)
-  useFrame(({ clock }, delta) => {
+  const modelRef = useRef<THREE.Group>(null)
+  const axeRef = useRef<THREE.Group>(null)
+  const { scene, animations } = useGLTF(BOSS_MODEL)
+  const model = useMemo(() => clone(scene), [scene])
+  const { actions } = useAnimations(animations, modelRef)
+
+  useEffect(() => {
+    const idle = actions['CharacterArmature|Idle']
+    const attack = actions['CharacterArmature|Bite_Front']
+    const death = actions['CharacterArmature|Death']
+    Object.values(actions).forEach((action) => action?.fadeOut(0.12))
+    const next = defeated ? death : fighting ? attack : idle
+    if (!next) return
+    next.reset().fadeIn(0.15)
+    next.setLoop(defeated ? THREE.LoopOnce : THREE.LoopRepeat, defeated ? 1 : Infinity)
+    next.clampWhenFinished = defeated
+    next.play()
+  }, [actions, defeated, fighting])
+
+  useFrame(({ clock }) => {
     if (!groupRef.current) return
-    if (defeated) {
-      scale.current = Math.max(0, scale.current - Math.min(delta, 0.05) * 3.4)
-      groupRef.current.scale.setScalar(scale.current)
-      groupRef.current.rotation.y += delta * 3
-      return
+    if (axeRef.current) {
+      const swing = fighting ? Math.sin(clock.elapsedTime * 10) : -0.45
+      axeRef.current.rotation.z = -0.55 + swing * 0.75
     }
-    groupRef.current.position.y = Math.sin(clock.elapsedTime * 2.2) * 0.12
-    groupRef.current.rotation.y = Math.sin(clock.elapsedTime * 0.9) * 0.08
+    groupRef.current.position.y = defeated ? 0 : Math.sin(clock.elapsedTime * 2.2) * 0.06
   })
 
   return (
     <group ref={groupRef}>
-      <mesh position={[0, 1.8, 0]} castShadow>
-        <cylinderGeometry args={[1.05, 1.3, 3.2, 10]} />
-        <meshStandardMaterial color="#6d28d9" emissive="#7c3aed" emissiveIntensity={0.42} roughness={0.28} metalness={0.55} />
-      </mesh>
-      <mesh position={[0, 3.78, 0]} castShadow>
-        <sphereGeometry args={[1.05, 14, 12]} />
-        <meshStandardMaterial color="#7e22ce" emissive="#a855f7" emissiveIntensity={0.4} roughness={0.24} metalness={0.5} />
-      </mesh>
-      {[-0.38, 0.38].map((x) => (
-        <mesh key={x} position={[x, 3.93, 0.88]}>
-          <sphereGeometry args={[0.21, 8, 6]} />
-          <meshBasicMaterial color="#fb7185" />
+      <group ref={modelRef} scale={1.6} rotation={[0, Math.PI, 0]}>
+        <primitive object={model} />
+      </group>
+      <group ref={axeRef} position={[1.25, 2.05, 0.1]}>
+        <mesh position={[0, 0.75, 0]} castShadow>
+          <cylinderGeometry args={[0.075, 0.075, 1.65, 8]} />
+          <meshStandardMaterial color="#78350f" roughness={0.7} />
         </mesh>
-      ))}
-      {[-0.55, 0.55].map((x) => (
-        <mesh key={x} position={[x, 4.72, 0]} rotation={[0, 0, x < 0 ? 0.4 : -0.4]}>
-          <coneGeometry args={[0.22, 0.9, 6]} />
-          <meshStandardMaterial color="#ef4444" emissive="#ef4444" emissiveIntensity={0.45} />
+        <mesh position={[0.25, 1.5, 0]} rotation={[0, 0, -0.2]} castShadow>
+          <boxGeometry args={[0.65, 0.48, 0.16]} />
+          <meshStandardMaterial color="#94a3b8" metalness={0.85} roughness={0.2} />
         </mesh>
-      ))}
-      {[-1.45, 1.45].map((x) => (
-        <mesh key={x} position={[x, 2.2, 0]} rotation={[0, 0, x < 0 ? 0.52 : -0.52]} castShadow>
-          <cylinderGeometry args={[0.3, 0.22, 1.75, 8]} />
-          <meshStandardMaterial color="#6d28d9" emissive="#7c3aed" emissiveIntensity={0.34} />
-        </mesh>
-      ))}
+      </group>
     </group>
   )
 }
+
+useGLTF.preload(BOSS_MODEL)
 
 function MultiplierGate({ tier, earned }: {
   tier: (typeof MULTIPLIER_TIERS)[number]
@@ -164,6 +171,7 @@ export function BossManager({
 }: BossManagerProps) {
   const bossDefeated = useGameStore((state) => state.bossDefeated)
   const finishMultiplier = useGameStore((state) => state.finishMultiplier)
+  const [bossFighting, setBossFighting] = useState(false)
   const bossTriggered = useRef(false)
   const bonusTierIndex = useRef(0)
   const previousZ = useRef(0)
@@ -189,6 +197,7 @@ export function BossManager({
       })
 
       fight.current = { active: true, elapsed: 0, strike: 0, remaining: balance.bossHealth }
+      setBossFighting(true)
       cameraShakeRef.current = 0.7
     }
 
@@ -217,10 +226,12 @@ export function BossManager({
 
         if (fight.current.remaining <= 0) {
           fight.current.active = false
+          setBossFighting(false)
           state.defeatBoss(controller?.getAliveCount() ?? state.crowdSize)
           audioManager.playBossDefeat()
         } else if (!controller || controller.getAliveCount() <= 0) {
           fight.current.active = false
+          setBossFighting(false)
           state.failRun()
           audioManager.playGameOver()
         }
@@ -286,7 +297,7 @@ export function BossManager({
   return (
     <>
       <group position={[0, 0, BOSS_WORLD_Z]}>
-        <BossCharacter defeated={bossDefeated} />
+        <BossCharacter defeated={bossDefeated} fighting={bossFighting} />
         {!bossDefeated && (
           <TextSign
             title={balance.bossHealth.toString()}

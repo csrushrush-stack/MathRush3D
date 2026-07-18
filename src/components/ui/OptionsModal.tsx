@@ -39,7 +39,6 @@ function Toggle({ on, onClick, label }: { on: boolean; onClick: () => void; labe
 export function OptionsModal({ onClose }: OptionsModalProps) {
   const settings = useGameStore((state) => state.settings)
   const setSetting = useGameStore((state) => state.setSetting)
-  const backendStatus = useGameStore((state) => state.backendStatus)
 
   const toggle = (key: keyof GameSettings) => {
     const next = { ...settings, [key]: !settings[key] }
@@ -82,9 +81,6 @@ export function OptionsModal({ onClose }: OptionsModalProps) {
             </div>
           ))}
         </div>
-        <p className="text-center text-xs pb-4" style={{ color: backendStatus === 'online' ? '#86efac' : '#fbbf24' }}>
-          {backendStatus === 'online' ? 'Progress synced to PostgreSQL' : 'Offline mode - progress is queued'}
-        </p>
       </div>
     </div>
   )

@@ -1,5 +1,6 @@
 import { Capacitor, CapacitorHttp } from '@capacitor/core'
 import { useGameStore, type Difficulty, type GameSettings } from '../store/useGameStore'
+import type { LevelProgress } from '../utils/levelProgress'
 
 const API_BASE = import.meta.env.VITE_API_URL
   ?? (import.meta.env.DEV ? '' : 'https://math-rush-api.onrender.com')
@@ -24,6 +25,8 @@ export interface PlayerProfile {
   coins: number
   bestScore: number
   selectedDifficulty: Difficulty
+  selectedLevel: number
+  levelProgress: LevelProgress
   selectedSkin: string
   ownedSkins: string[]
   settings: GameSettings
@@ -40,6 +43,7 @@ export interface PlayerProfile {
 interface PendingRun {
   clientRunId: string
   difficulty: string
+  level: number
   status: 'won' | 'lost'
   startedAt: string
   endedAt: string
@@ -140,10 +144,10 @@ function applyProfile(profile: PlayerProfile) {
 
 async function postRun(run: PendingRun, playerId: string) {
   const result = await requestJson<{
-    player?: { coins: number; bestScore: number; stats: PlayerProfile['stats'] }
+    player?: { coins: number; bestScore: number; selectedLevel?: number; levelProgress?: LevelProgress; stats: PlayerProfile['stats'] }
   }>('/api/runs', {
     method: 'POST',
-    body: JSON.stringify({ ...run, playerId }),
+    body: JSON.stringify({ ...run, level: run.level ?? 1, playerId }),
   })
   if (result.player) {
     const state = useGameStore.getState()
@@ -152,6 +156,8 @@ async function postRun(run: PendingRun, playerId: string) {
       displayName: state.displayName,
       coins: result.player.coins,
       bestScore: result.player.bestScore,
+      selectedLevel: result.player.selectedLevel,
+      levelProgress: result.player.levelProgress,
       stats: result.player.stats,
     })
   }
@@ -225,6 +231,7 @@ export async function submitCompletedRun() {
   const run: PendingRun = {
     clientRunId: state.clientRunId,
     difficulty: state.difficulty,
+    level: state.selectedLevel,
     status: won ? 'won' : 'lost',
     startedAt: state.runStartedAt,
     endedAt: new Date().toISOString(),
@@ -271,12 +278,12 @@ export async function saveSettings(settings: GameSettings) {
   })
 }
 
-export async function saveSelectedDifficulty(selectedDifficulty: Difficulty) {
+export async function saveSelectedDifficulty(selectedDifficulty: Difficulty, selectedLevel?: number) {
   const { playerId } = useGameStore.getState()
   if (!playerId) return
   await requestJson(`/api/players/${playerId}/progress`, {
     method: 'PATCH',
-    body: JSON.stringify({ selectedDifficulty }),
+    body: JSON.stringify({ selectedDifficulty, selectedLevel }),
   })
 }
 

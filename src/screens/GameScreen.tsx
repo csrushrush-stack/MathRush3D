@@ -183,7 +183,7 @@ function IconButton({
 
 // ─── Pause overlay ──────────────────────────────────────────────────────────
 
-function PauseOverlay({ onResume, onHome }: { onResume: () => void; onHome: () => void }) {
+function PauseOverlay({ onResume, onRestart, onHome }: { onResume: () => void; onRestart: () => void; onHome: () => void }) {
   return (
     <div
       className="absolute inset-0 flex flex-col items-center justify-center"
@@ -232,6 +232,15 @@ function PauseOverlay({ onResume, onHome }: { onResume: () => void; onHome: () =
             <path d="M8 5v14l11-7z" />
           </svg>
           RESUME
+        </button>
+
+        <button
+          id="restart-button"
+          onClick={onRestart}
+          className="w-full flex items-center justify-center gap-2 rounded-2xl font-black text-white"
+          style={{ height: 48, fontSize: 13, letterSpacing: '0.08em', background: 'linear-gradient(180deg,#f59e0b,#d97706)', border: '2px solid #fcd34d', boxShadow: '0 4px 0 #78350f' }}
+        >
+          ↻ RESTART LEVEL
         </button>
 
         {/* Home */}
@@ -542,6 +551,7 @@ function WinOverlay({
 export function GameScreen() {
   const phase      = useGameStore((s) => s.phase)
   const difficulty = useGameStore((s) => s.difficulty)
+  const selectedLevel = useGameStore((s) => s.selectedLevel)
   const crowdSize  = useGameStore((s) => s.crowdSize)
   const isPaused   = useGameStore((s) => s.isPaused)
   const setPaused  = useGameStore((s) => s.setPaused)
@@ -617,6 +627,7 @@ export function GameScreen() {
         <div className="absolute inset-0">
           <GameScene
             difficulty={difficulty}
+            level={selectedLevel}
             isPaused={isFrozen}
             onDistanceUpdate={handleDistanceUpdate}
           />
@@ -679,7 +690,7 @@ export function GameScreen() {
                 textTransform: 'uppercase',
               }}
             >
-              {difficulty} mode
+              {difficulty} · level {selectedLevel}
             </div>
           </div>
 
@@ -719,7 +730,7 @@ export function GameScreen() {
 
         {/* ── PAUSE OVERLAY (only while paused, not during game over or win) ── */}
         {isPaused && phase !== 'gameover' && phase !== 'win' && (
-          <PauseOverlay onResume={handleResume} onHome={handleHome} />
+          <PauseOverlay onResume={handleResume} onRestart={handleRetry} onHome={handleHome} />
         )}
 
         {/* ── GAME OVER OVERLAY ── */}

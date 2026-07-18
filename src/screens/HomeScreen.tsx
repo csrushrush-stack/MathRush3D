@@ -33,6 +33,7 @@ import { StatsModal }      from '../components/ui/StatsModal'
 import { useGameStore, type Difficulty } from '../store/useGameStore'
 import { audioManager }   from '../utils/audioManager'
 import { fetchLeaderboard, saveSelectedDifficulty } from '../services/api'
+import { highestUnlockedLevel, isDifficultyUnlocked, LEVELS_PER_DIFFICULTY } from '../utils/levelProgress'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Design tokens — single source of truth
@@ -391,11 +392,12 @@ function PlayButton({ onClick }: { onClick: () => void }) {
 // DiffBtn – difficulty selector
 // ─────────────────────────────────────────────────────────────────────────────
 
-function DiffBtn({ diff, active, onClick }: { diff: DiffConfig; active: boolean; onClick: () => void }) {
+function DiffBtn({ diff, active, locked, completed, onClick }: { diff: DiffConfig; active: boolean; locked: boolean; completed: number; onClick: () => void }) {
   return (
     <button
       id={`diff-${diff.id}`}
       onClick={onClick}
+      disabled={locked}
       className="flex-1 flex flex-col items-center justify-center rounded-2xl"
       style={{
         height: 68,
@@ -406,7 +408,7 @@ function DiffBtn({ diff, active, onClick }: { diff: DiffConfig; active: boolean;
         boxShadow: active
           ? `0 5px 0 ${diff.bottom}, 0 9px 22px ${diff.glow}, inset 0 1px 0 rgba(255,255,255,0.32)`
           : `0 2px 0 ${diff.bottom}66, inset 0 1px 0 rgba(255,255,255,0.12)`,
-        opacity: active ? 1 : 0.72,
+        opacity: locked ? 0.42 : active ? 1 : 0.72,
         transform: active ? 'translateY(-3px)' : 'translateY(0)',
         transition: 'all 0.15s cubic-bezier(0.34,1.4,0.64,1)',
         padding: '6px 3px 4px',
@@ -422,11 +424,11 @@ function DiffBtn({ diff, active, onClick }: { diff: DiffConfig; active: boolean;
         className="text-white font-black leading-none"
         style={{ fontSize: 11.5, textShadow: '0 1px 4px rgba(0,0,0,0.5)', letterSpacing: '0.04em' }}
       >
-        {diff.label}
+        {locked ? '🔒' : diff.label}
       </div>
       {/* Sub */}
       <div className="font-semibold leading-none mt-1" style={{ fontSize: 8, color: 'rgba(255,255,255,0.78)' }}>
-        {diff.sub}
+        {locked ? 'LOCKED' : `${completed}/${LEVELS_PER_DIFFICULTY}`}
       </div>
     </button>
   )
@@ -659,11 +661,22 @@ function Divider() {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export function HomeScreen({ onLogout }: { onLogout: () => void }) {
-  const { difficulty, setDifficulty, bestScore, resetGame } = useGameStore()
+  const { difficulty, setDifficulty, selectedLevel, setSelectedLevel, levelProgress, bestScore, resetGame } = useGameStore()
   const displayName = useGameStore((state) => state.displayName)
   const [showOptions, setShowOptions] = useState(false)
   const [showSkins,   setShowSkins]   = useState(false)
   const [showStats, setShowStats] = useState(false)
+
+  useEffect(() => {
+    if (isDifficultyUnlocked(difficulty, levelProgress)) return
+    setDifficulty('easy')
+    setSelectedLevel(highestUnlockedLevel('easy', levelProgress) || 1)
+  }, [difficulty, levelProgress, setDifficulty, setSelectedLevel])
+
+  useEffect(() => {
+    const maximum = highestUnlockedLevel(difficulty, levelProgress) || 1
+    if (selectedLevel > maximum) setSelectedLevel(maximum)
+  }, [difficulty, levelProgress, selectedLevel, setSelectedLevel])
 
   return (
     /*
@@ -755,12 +768,40 @@ export function HomeScreen({ onLogout }: { onLogout: () => void }) {
                   key={d.id}
                   diff={d}
                   active={difficulty === d.id}
+                  locked={!isDifficultyUnlocked(d.id, levelProgress)}
+                  completed={levelProgress[d.id]}
                   onClick={() => {
+                    if (!isDifficultyUnlocked(d.id, levelProgress)) return
                     setDifficulty(d.id)
-                    void saveSelectedDifficulty(d.id)
+                    const level = highestUnlockedLevel(d.id, levelProgress) || 1
+                    setSelectedLevel(level)
+                    void saveSelectedDifficulty(d.id, level)
                   }}
                 />
               ))}
+            </div>
+
+            <div style={{ marginBottom: 12, padding: '10px 12px', borderRadius: 16, background: 'rgba(7,18,52,0.78)', border: '1px solid rgba(125,211,252,0.28)' }}>
+              <div className="flex items-center justify-between" style={{ marginBottom: 8, color: '#e0f2fe', fontSize: 10, fontWeight: 900, letterSpacing: '0.12em' }}>
+                <span>SELECT LEVEL</span><span>{levelProgress[difficulty]}/10 CLEARED</span>
+              </div>
+              <div className="grid grid-cols-5" style={{ gap: 6 }}>
+                {Array.from({ length: LEVELS_PER_DIFFICULTY }, (_, index) => index + 1).map((level) => {
+                  const unlocked = level <= highestUnlockedLevel(difficulty, levelProgress)
+                  const complete = level <= levelProgress[difficulty]
+                  return (
+                    <button
+                      key={level}
+                      type="button"
+                      disabled={!unlocked}
+                      onClick={() => { setSelectedLevel(level); void saveSelectedDifficulty(difficulty, level) }}
+                      style={{ height: 30, borderRadius: 9, fontWeight: 900, fontSize: 11, color: unlocked ? '#fff' : '#64748b', background: selectedLevel === level ? 'linear-gradient(135deg,#2563eb,#7c3aed)' : complete ? 'rgba(22,163,74,0.75)' : 'rgba(15,23,42,0.8)', border: selectedLevel === level ? '1.5px solid #bfdbfe' : '1px solid rgba(148,163,184,0.25)' }}
+                    >
+                      {unlocked ? level : '•'}
+                    </button>
+                  )
+                })}
+              </div>
             </div>
 
             <Divider />

@@ -10,6 +10,7 @@ export const settingsSchema = z.object({
 })
 export const progressSchema = z.object({
   selectedDifficulty: difficultySchema,
+  selectedLevel: z.number().int().min(1).max(10).optional(),
 })
 
 export const sessionSchema = z.object({
@@ -47,7 +48,7 @@ const gateEventSchema = z.object({
 const obstacleEventSchema = z.object({
   obstacleIndex: z.number().int().min(0).max(20),
   worldZ: z.number().min(-1_000).max(0),
-  obstacleType: z.enum(['wall', 'blocker', 'enemy', 'hammer']),
+  obstacleType: z.enum(['wall', 'blocker', 'enemy', 'hammer', 'cones', 'pit', 'spinner', 'crusher']),
   outcome: z.enum(['hit', 'dodged', 'defeated']),
   crowdBefore: z.number().int().min(0).max(10_000),
   crowdAfter: z.number().int().min(0).max(10_000),
@@ -58,6 +59,7 @@ export const runSchema = z.object({
   clientRunId: z.string().uuid(),
   playerId: z.string().uuid(),
   difficulty: difficultySchema,
+  level: z.number().int().min(1).max(10),
   status: z.enum(['won', 'lost']),
   startedAt: z.string().datetime(),
   endedAt: z.string().datetime(),

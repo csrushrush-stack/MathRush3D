@@ -22,8 +22,8 @@ describe('organic crowd formation', () => {
 
   it('squeezes at a wall without collapsing the formation', () => {
     expect(wallCompression(0)).toBe(1)
-    expect(wallCompression(0.5)).toBeCloseTo(0.88)
-    expect(wallCompression(1)).toBeCloseTo(0.76)
-    expect(wallCompression(3)).toBeCloseTo(0.76)
+    expect(wallCompression(0.5)).toBeCloseTo(0.77)
+    expect(wallCompression(1)).toBeCloseTo(0.54)
+    expect(wallCompression(3)).toBeCloseTo(0.54)
   })
 })

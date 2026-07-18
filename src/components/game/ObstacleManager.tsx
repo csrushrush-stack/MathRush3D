@@ -179,6 +179,64 @@ function HammerObstacle({ obstacle }: { obstacle: ObstacleState }) {
   )
 }
 
+function ConesObstacle({ obstacle }: { obstacle: ObstacleState }) {
+  const side = obstacle.blockerSide === 'left' ? -1.35 : 1.35
+  return (
+    <AnimatedObstacle resolution={obstacle.resolution} position={[0, 0, obstacle.worldZ]}>
+      {[-0.55, 0, 0.55].map((offset, index) => (
+        <group key={offset} position={[side + offset * 0.75, 0, index % 2 ? 0.22 : -0.15]}>
+          <mesh position={[0, 0.38, 0]} castShadow><coneGeometry args={[0.27, 0.75, 10]} /><meshStandardMaterial color="#fb923c" emissive="#f97316" emissiveIntensity={0.25} /></mesh>
+          <mesh position={[0, 0.08, 0]}><cylinderGeometry args={[0.36, 0.36, 0.1, 10]} /><meshStandardMaterial color="#f8fafc" /></mesh>
+        </group>
+      ))}
+    </AnimatedObstacle>
+  )
+}
+
+function PitObstacle({ obstacle }: { obstacle: ObstacleState }) {
+  const side = obstacle.blockerSide === 'left' ? -1.28 : 1.28
+  return (
+    <AnimatedObstacle resolution={obstacle.resolution} position={[0, 0, obstacle.worldZ]}>
+      <mesh position={[side, 0.035, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[2.35, 1.35]} />
+        <meshBasicMaterial color="#020617" />
+      </mesh>
+      <mesh position={[side, 0.02, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[0.62, 1.12, 18]} />
+        <meshBasicMaterial color="#7c2d12" transparent opacity={0.7} />
+      </mesh>
+    </AnimatedObstacle>
+  )
+}
+
+function SpinnerObstacle({ obstacle }: { obstacle: ObstacleState }) {
+  const spinnerRef = useRef<THREE.Group>(null)
+  useFrame(({ clock }) => {
+    if (spinnerRef.current && obstacle.resolution === 'active') spinnerRef.current.rotation.y = clock.elapsedTime * obstacle.hammerSpeed + obstacle.hammerPhase
+  })
+  return (
+    <AnimatedObstacle resolution={obstacle.resolution} position={[0, 0, obstacle.worldZ]}>
+      <group ref={spinnerRef}>
+        <mesh position={[0, 0.42, 0]}><cylinderGeometry args={[0.28, 0.34, 0.82, 12]} /><meshStandardMaterial color="#dc2626" metalness={0.6} /></mesh>
+        <mesh position={[0, 0.55, 0]} castShadow><boxGeometry args={[4.25, 0.28, 0.32]} /><meshStandardMaterial color="#facc15" emissive="#ef4444" emissiveIntensity={0.28} /></mesh>
+      </group>
+    </AnimatedObstacle>
+  )
+}
+
+function CrusherObstacle({ obstacle }: { obstacle: ObstacleState }) {
+  const blockedX = obstacle.blockerSide === 'left' ? -0.95 : 0.95
+  return (
+    <AnimatedObstacle resolution={obstacle.resolution} position={[0, 0, obstacle.worldZ]}>
+      <mesh position={[blockedX, 1.15, 0]} castShadow>
+        <boxGeometry args={[3.1, 2.3, 0.72]} />
+        <meshStandardMaterial color="#991b1b" emissive="#ef4444" emissiveIntensity={0.3} metalness={0.68} roughness={0.25} />
+      </mesh>
+      {[-1.2, 0, 1.2].map((offset) => <mesh key={offset} position={[blockedX + offset, 1.15, 0.4]}><boxGeometry args={[0.12, 2.05, 0.08]} /><meshBasicMaterial color="#fbbf24" /></mesh>)}
+    </AnimatedObstacle>
+  )
+}
+
 interface ObstacleManagerProps {
   obstacles: ObstacleData[]
   crowdZRef: React.RefObject<number>
@@ -242,27 +300,28 @@ export function ObstacleManager({
     const avoidance: CrowdAvoidanceArea[] = []
     for (const obstacle of source) {
       if (processed.current.has(obstacle.id) || obstacle.type === 'enemy') continue
-      if (obstacle.type === 'wall') {
+      if (obstacle.type === 'wall' || obstacle.type === 'cones' || obstacle.type === 'pit') {
+        const halfWidth = obstacle.type === 'wall' ? 0.8 : obstacle.type === 'pit' ? 1.16 : 0.88
         avoidance.push({
           key: `wall-${obstacle.id}`,
           centerX: obstacle.blockerSide === 'left' ? -1.35 : 1.35,
           centerZ: obstacle.worldZ,
-          halfWidth: 0.8,
+          halfWidth,
           halfDepth: 0.36,
           preferredSide: obstacle.blockerSide === 'left' ? 1 : -1,
           strength: 2.35,
         })
-      } else if (obstacle.type === 'blocker') {
+      } else if (obstacle.type === 'blocker' || obstacle.type === 'crusher') {
         avoidance.push({
           key: `blocker-${obstacle.id}`,
-          centerX: obstacle.blockerSide === 'left' ? -1.3 : 1.3,
+          centerX: obstacle.type === 'crusher' ? (obstacle.blockerSide === 'left' ? -0.95 : 0.95) : (obstacle.blockerSide === 'left' ? -1.3 : 1.3),
           centerZ: obstacle.worldZ,
-          halfWidth: 1.18,
+          halfWidth: obstacle.type === 'crusher' ? 1.55 : 1.18,
           halfDepth: 0.36,
           preferredSide: obstacle.blockerSide === 'left' ? 1 : -1,
           strength: 2.6,
         })
-      } else {
+      } else if (obstacle.type === 'hammer') {
         avoidance.push({
           key: `hammer-${obstacle.id}`,
           centerX: getHammerX(obstacle, clock.elapsedTime),
@@ -363,22 +422,29 @@ export function ObstacleManager({
         let halfWidth = 0
         let halfDepth = 0.36
         let impulseX = 0
-        if (obstacle.type === 'wall') {
+        if (obstacle.type === 'wall' || obstacle.type === 'cones' || obstacle.type === 'pit') {
           centerX = obstacle.blockerSide === 'left' ? -1.35 : 1.35
-          halfWidth = 0.8
+          halfWidth = obstacle.type === 'wall' ? 0.8 : obstacle.type === 'pit' ? 1.16 : 0.88
+          halfDepth = obstacle.type === 'pit' ? 0.68 : 0.36
           impulseX = obstacle.blockerSide === 'left' ? 2.4 : -2.4
-        } else if (obstacle.type === 'blocker') {
-          centerX = obstacle.blockerSide === 'left' ? -1.3 : 1.3
-          halfWidth = 1.18
+        } else if (obstacle.type === 'blocker' || obstacle.type === 'crusher') {
+          centerX = obstacle.type === 'crusher' ? (obstacle.blockerSide === 'left' ? -0.95 : 0.95) : (obstacle.blockerSide === 'left' ? -1.3 : 1.3)
+          halfWidth = obstacle.type === 'crusher' ? 1.55 : 1.18
           impulseX = obstacle.blockerSide === 'left' ? 2 : -2
-        } else {
+        } else if (obstacle.type === 'hammer') {
           centerX = getHammerX(obstacle, clock.elapsedTime)
           halfWidth = 0.74
           halfDepth = 0.4
           impulseX = Math.cos(clock.elapsedTime * obstacle.hammerSpeed + obstacle.hammerPhase) >= 0 ? 3.2 : -3.2
+        } else {
+          centerX = Math.sin(clock.elapsedTime * obstacle.hammerSpeed + obstacle.hammerPhase) * 1.45
+          halfWidth = 0.64
+          halfDepth = 0.42
+          impulseX = centerX >= 0 ? 3.4 : -3.4
         }
-        const hammerPassLimit = obstacle.type === 'hammer'
+        const hammerPassLimit = obstacle.type === 'hammer' || obstacle.type === 'spinner'
           ? Math.max(1, Math.ceil(contact.crowdBefore * 0.22))
+          : obstacle.type === 'cones' ? 3
           : Number.POSITIVE_INFINITY
         const remainingPassHits = Math.max(0, hammerPassLimit - contact.damage)
         const removed = remainingPassHits > 0 ? controller.hitArea({
@@ -415,7 +481,11 @@ export function ObstacleManager({
         if (obstacle.type === 'wall') return <WallObstacle key={obstacle.id} obstacle={obstacle} />
         if (obstacle.type === 'blocker') return <BlockerObstacle key={obstacle.id} obstacle={obstacle} />
         if (obstacle.type === 'enemy') return <EnemyObstacle key={obstacle.id} obstacle={obstacle} fighting={fightingId === obstacle.id} />
-        return <HammerObstacle key={obstacle.id} obstacle={obstacle} />
+        if (obstacle.type === 'hammer') return <HammerObstacle key={obstacle.id} obstacle={obstacle} />
+        if (obstacle.type === 'cones') return <ConesObstacle key={obstacle.id} obstacle={obstacle} />
+        if (obstacle.type === 'pit') return <PitObstacle key={obstacle.id} obstacle={obstacle} />
+        if (obstacle.type === 'spinner') return <SpinnerObstacle key={obstacle.id} obstacle={obstacle} />
+        return <CrusherObstacle key={obstacle.id} obstacle={obstacle} />
       })}
     </>
   )

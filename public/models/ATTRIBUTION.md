@@ -11,3 +11,10 @@ textures are from Kenney's Blocky Characters 2.0 pack (`character-a.glb` and
 
 - Source: https://kenney.nl/assets/blocky-characters
 - License: CC0 1.0 Universal
+
+`boss/quaternius-orc-boss.glb` is the animated "Orc Enemy" from Quaternius'
+Ultimate Monsters pack, distributed by Poly Pizza.
+
+- Source: https://poly.pizza/m/Q3z8ZX4kUy
+- Creator pack: https://quaternius.com/packs/ultimatemonsters.html
+- License: CC0 1.0 Universal

@@ -15,7 +15,7 @@ interface GatePairState extends GatePairData {
   triggered: boolean
 }
 
-function createGateTexture(option: GateOption, gateNumber: number, accent: string) {
+function createGateTexture(option: GateOption, accent: string) {
   const canvas = document.createElement('canvas')
   canvas.width = 384
   canvas.height = 192
@@ -28,36 +28,13 @@ function createGateTexture(option: GateOption, gateNumber: number, accent: strin
   context.strokeStyle = accent
   context.lineWidth = 8
   context.strokeRect(8, 8, canvas.width - 16, canvas.height - 16)
-  const operationStyle = option.operation === 'add'
-    ? { label: 'ADD THE ANSWER', symbol: '+', color: '#4ade80' }
-    : option.operation === 'divide'
-      ? { label: 'DIVIDE BY ANSWER', symbol: '÷', color: '#f472b6' }
-      : option.operation === 'multiply'
-        ? { label: 'MULTIPLY BY ANSWER', symbol: '×', color: '#c084fc' }
-        : { label: 'SUBTRACT ANSWER', symbol: '−', color: '#fb7185' }
-
   context.textAlign = 'center'
   context.textBaseline = 'middle'
-  context.shadowColor = operationStyle.color
+  context.shadowColor = accent
   context.shadowBlur = 16
-  context.beginPath()
-  context.arc(58, 111, 35, 0, Math.PI * 2)
-  context.fillStyle = `${operationStyle.color}33`
-  context.fill()
-  context.lineWidth = 6
-  context.strokeStyle = operationStyle.color
-  context.stroke()
   context.fillStyle = '#ffffff'
-  context.font = '900 54px Nunito, Arial, sans-serif'
-  context.fillText(operationStyle.symbol, 58, 108)
-  context.textAlign = 'center'
-  context.font = '900 60px Nunito, Arial, sans-serif'
-  context.fillText(option.expr, 232, 111)
-  context.shadowBlur = 0
-  context.textAlign = 'center'
-  context.fillStyle = operationStyle.color
-  context.font = '900 19px Nunito, Arial, sans-serif'
-  context.fillText(`${operationStyle.label} · GATE ${gateNumber}`, canvas.width / 2, 34)
+  context.font = '900 76px Nunito, Arial, sans-serif'
+  context.fillText(option.expr, canvas.width / 2, canvas.height / 2)
 
   const texture = new THREE.CanvasTexture(canvas)
   texture.colorSpace = THREE.SRGBColorSpace
@@ -68,17 +45,15 @@ function createGateTexture(option: GateOption, gateNumber: number, accent: strin
 function GatePanel({
   side,
   option,
-  gateNumber,
 }: {
   side: 'left' | 'right'
   option: GateOption
-  gateNumber: number
 }) {
   const centerX = side === 'left' ? -GATE_CENTER_X : GATE_CENTER_X
   const accent = side === 'left' ? '#818cf8' : '#22d3ee'
   const texture = useMemo(
-    () => createGateTexture(option, gateNumber, accent),
-    [accent, gateNumber, option],
+    () => createGateTexture(option, accent),
+    [accent, option],
   )
 
   useEffect(() => () => texture.dispose(), [texture])
@@ -136,8 +111,8 @@ const GatePair = memo(function GatePair({ pair }: { pair: GatePairState }) {
 
   return (
     <group ref={groupRef} position={[0, 0, pair.worldZ]}>
-      <GatePanel side="left" option={pair.left} gateNumber={pair.id + 1} />
-      <GatePanel side="right" option={pair.right} gateNumber={pair.id + 1} />
+      <GatePanel side="left" option={pair.left} />
+      <GatePanel side="right" option={pair.right} />
       <mesh position={[0, GATE_HEIGHT / 2, 0]} castShadow>
         <boxGeometry args={[0.34, GATE_HEIGHT + 0.22, 0.34]} />
         <meshStandardMaterial

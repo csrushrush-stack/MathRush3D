@@ -16,7 +16,6 @@ const CHARACTER_SCALE = 0.335
 const CHARACTER_MODEL = '/models/characters/kenney-blocky-character.glb'
 const PART_NAMES = ['leg-left', 'leg-right', 'torso', 'arm-left', 'arm-right', 'head'] as const
 const SEPARATION_DISTANCE = 0.31
-const SEPARATION_DISTANCE_SQ = SEPARATION_DISTANCE * SEPARATION_DISTANCE
 const X_AXIS = new THREE.Vector3(1, 0, 0)
 
 type PartName = typeof PART_NAMES[number]
@@ -327,6 +326,8 @@ export function CrowdRunner({
 
     separationX.fill(0)
     separationZ.fill(0)
+    const separationDistance = Math.max(0.17, SEPARATION_DISTANCE * horizontalCompression)
+    const separationDistanceSq = separationDistance * separationDistance
     for (let first = 0; first < members.current.length; first += 1) {
       const a = members.current[first]
       if (a.life !== 'alive') continue
@@ -336,9 +337,9 @@ export function CrowdRunner({
         const dx = a.x - b.x
         const dz = a.z - b.z
         const distanceSq = dx * dx + dz * dz
-        if (distanceSq <= 0.0001 || distanceSq >= SEPARATION_DISTANCE_SQ) continue
+        if (distanceSq <= 0.0001 || distanceSq >= separationDistanceSq) continue
         const distance = Math.sqrt(distanceSq)
-        const force = (SEPARATION_DISTANCE - distance) / SEPARATION_DISTANCE
+        const force = (separationDistance - distance) / separationDistance
         const pushX = dx / distance * force
         const pushZ = dz / distance * force
         separationX[first] += pushX

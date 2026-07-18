@@ -61,9 +61,9 @@ export function gateCompression(distanceToGate: number) {
   return 0.68 + eased * 0.32
 }
 
-/** A held input at the rail narrows the crowd by at most 24%. */
+/** A held input at the rail narrows the crowd enough for skillful tight passes. */
 export function wallCompression(pressure: number) {
   const safePressure = Math.min(1, Math.max(0, pressure))
   const eased = safePressure * safePressure * (3 - 2 * safePressure)
-  return 1 - eased * 0.24
+  return 1 - eased * 0.46
 }

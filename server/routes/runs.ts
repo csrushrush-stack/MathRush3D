@@ -41,20 +41,21 @@ runsRouter.post('/', async (request, response) => {
 
     const inserted = await client.query(`
       INSERT INTO game_runs (
-        client_run_id, player_id, difficulty, status, started_at, ended_at,
+        client_run_id, player_id, difficulty, level, status, started_at, ended_at,
         duration_ms, score, distance, starting_crowd, crowd_at_boss,
         ending_crowd, boss_health, multiplier, stars, coins_earned,
         bonus_points, math_gain, max_math_gain, client_version
       ) VALUES (
-        $1, $2, $3, $4, $5, $6,
-        $7, $8, $9, $10, $11,
-        $12, $13, $14, $15, $16,
-        $17, $18, $19, $20
+        $1, $2, $3, $4, $5, $6, $7,
+        $8, $9, $10, $11, $12,
+        $13, $14, $15, $16, $17,
+        $18, $19, $20, $21
       ) RETURNING id, score, coins_earned
     `, [
       input.clientRunId,
       input.playerId,
       input.difficulty,
+      input.level,
       input.status,
       input.startedAt,
       input.endedAt,
@@ -122,10 +123,15 @@ runsRouter.post('/', async (request, response) => {
         games_won = games_won + $4,
         total_score = total_score + $3,
         highest_multiplier = GREATEST(highest_multiplier, $5),
-        total_math_gain = total_math_gain + $6
+        total_math_gain = total_math_gain + $6,
+        easy_levels_completed = CASE WHEN $8 = 'won' AND $9 = 'easy' THEN GREATEST(easy_levels_completed, $10) ELSE easy_levels_completed END,
+        medium_levels_completed = CASE WHEN $8 = 'won' AND $9 = 'medium' THEN GREATEST(medium_levels_completed, $10) ELSE medium_levels_completed END,
+        hard_levels_completed = CASE WHEN $8 = 'won' AND $9 = 'hard' THEN GREATEST(hard_levels_completed, $10) ELSE hard_levels_completed END,
+        expert_levels_completed = CASE WHEN $8 = 'won' AND $9 = 'expert' THEN GREATEST(expert_levels_completed, $10) ELSE expert_levels_completed END
       WHERE player_id = $1
       RETURNING coins, best_score, games_played, games_won, total_stars, total_score,
-                highest_multiplier, total_math_gain
+                highest_multiplier, total_math_gain, selected_level,
+                easy_levels_completed, medium_levels_completed, hard_levels_completed, expert_levels_completed
     `, [
       input.playerId,
       rewards.coins,
@@ -134,6 +140,9 @@ runsRouter.post('/', async (request, response) => {
       input.multiplier,
       Math.max(0, input.mathGain),
       input.stars,
+      input.status,
+      input.difficulty,
+      input.level,
     ])
     if (!player.rowCount) throw new Error('Player not found')
     await client.query('UPDATE players SET last_seen_at = now() WHERE id = $1', [input.playerId])
@@ -175,6 +184,13 @@ runsRouter.post('/', async (request, response) => {
       player: {
         coins: stats.coins,
         bestScore: stats.best_score,
+        selectedLevel: stats.selected_level,
+        levelProgress: {
+          easy: stats.easy_levels_completed,
+          medium: stats.medium_levels_completed,
+          hard: stats.hard_levels_completed,
+          expert: stats.expert_levels_completed,
+        },
         stats: {
           gamesPlayed: stats.games_played,
           gamesWon: stats.games_won,
