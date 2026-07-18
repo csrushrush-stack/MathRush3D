@@ -9,7 +9,7 @@ import type { ObstacleType } from '../utils/obstacles'
 import { completeLevel, EMPTY_LEVEL_PROGRESS, type LevelProgress } from '../utils/levelProgress'
 
 export type GamePhase = 'home' | 'playing' | 'paused' | 'gameover' | 'win'
-export type RunStage = 'run' | 'battle' | 'boss' | 'bonus' | 'conversion' | 'complete'
+export type RunStage = 'run' | 'battle' | 'meter' | 'boss' | 'bonus' | 'conversion' | 'complete'
 export type Difficulty = 'easy' | 'medium' | 'hard' | 'expert'
 export type BackendStatus = 'connecting' | 'online' | 'offline'
 
@@ -82,6 +82,7 @@ interface GameState {
   mandatoryObstacleDamage: number
   realisticMaxCrowd: number
   bossDefeated: boolean
+  bossMeterBoost: number
   bossHealth: number
   bossRemainingHealth: number
   crowdAtBoss: number
@@ -122,6 +123,8 @@ interface GameState {
   setRunDistance: (distance: number) => void
   setRunStage: (stage: RunStage) => void
   initializeLevel: (balance: LevelBalance) => void
+  beginBossMeter: () => void
+  applyBossMeterBoost: (boost: number) => void
   recordGateChoice: (event: GateRunEvent) => void
   recordObstacle: (event: ObstacleRunEvent) => void
   beginBoss: (input: {
@@ -189,6 +192,7 @@ export const useGameStore = create<GameState>()(
       mandatoryObstacleDamage: 0,
       realisticMaxCrowd: 0,
       bossDefeated: false,
+      bossMeterBoost: 0,
       bossHealth: 0,
       bossRemainingHealth: 0,
       crowdAtBoss: 0,
@@ -267,6 +271,12 @@ export const useGameStore = create<GameState>()(
         bossHealth: balance.bossHealth,
         bossRemainingHealth: balance.bossHealth,
       }),
+      beginBossMeter: () => set({ runStage: 'meter', bossMeterBoost: 0 }),
+      applyBossMeterBoost: (boost) => set((state) => ({
+        runStage: 'run',
+        bossMeterBoost: Math.max(0, Math.round(boost)),
+        crowdSize: Math.min(240, state.crowdSize + Math.max(0, Math.round(boost))),
+      })),
       recordGateChoice: (event) => set((state) => ({
         actualMathGain: state.actualMathGain + event.chosenDelta,
         gateEvents: [...state.gateEvents, event],
@@ -374,6 +384,7 @@ export const useGameStore = create<GameState>()(
         mandatoryObstacleDamage: 0,
         realisticMaxCrowd: 0,
         bossDefeated: false,
+        bossMeterBoost: 0,
         bossHealth: 0,
         bossRemainingHealth: 0,
         crowdAtBoss: 0,

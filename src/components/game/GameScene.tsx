@@ -151,7 +151,7 @@ export function GameScene({
         <fog attach="fog" args={[theme.fog, 35, 160]} />
 
         {/* ── Track (infinite tiled road) ── */}
-        <GameTrack crowdZRef={crowdZRef as React.RefObject<number>} theme={theme.track} />
+        <GameTrack theme={theme.track} />
 
         {/* ── Math gate pairs (exactly 10) ── */}
         <GateManager
@@ -182,6 +182,7 @@ export function GameScene({
         {/* ── Crowd runner (player's crowd — subscribes to crowdSize internally) ── */}
         <CrowdRunner
           difficulty={difficulty}
+          level={level}
           isPaused={isPaused}
           gateZs={gateZs}
           controllerRef={crowdControllerRef}

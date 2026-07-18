@@ -8,8 +8,8 @@ import { getSkinDefinition } from '../../config/skins'
 import { createOrganicFormation, gateCompression, wallCompression } from '../../utils/crowdFormation'
 import { TRACK_HALF } from './GameTrack'
 import type { CrowdAvoidanceArea, CrowdController, CrowdHitArea } from './CrowdRuntime'
+import { getBonusRunSpeed, getRunSpeed } from '../../utils/gameSpeed'
 
-const SPEED = { easy: 6.2, medium: 8.2, hard: 10.5, expert: 12.5 } as const
 const MAX_CROWD = 240
 const DEATH_SECONDS = 0.62
 const CHARACTER_SCALE = 0.335
@@ -61,6 +61,7 @@ function nearestGateCompression(worldZ: number, gateZs: number[]) {
 
 interface CrowdRunnerProps {
   difficulty: string
+  level: number
   isPaused: boolean
   gateZs: number[]
   controllerRef: React.MutableRefObject<CrowdController | null>
@@ -70,6 +71,7 @@ interface CrowdRunnerProps {
 
 export function CrowdRunner({
   difficulty,
+  level,
   isPaused,
   gateZs,
   controllerRef,
@@ -283,7 +285,9 @@ export function CrowdRunner({
     elapsed.current += delta
 
     if (runStage === 'run' || runStage === 'bonus') {
-      const speed = SPEED[difficulty as keyof typeof SPEED] ?? SPEED.medium
+      const speed = runStage === 'bonus'
+        ? getBonusRunSpeed(difficulty, level)
+        : getRunSpeed(difficulty, level)
       posZ.current -= speed * delta
     }
 

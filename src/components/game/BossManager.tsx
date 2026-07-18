@@ -15,8 +15,12 @@ import {
 import type { CrowdController } from './CrowdRuntime'
 
 export const BOSS_WORLD_Z = -275
+export const BOSS_METER_WORLD_Z = -265
 const BOSS_FIGHT_SECONDS = 3.4
 const BOSS_MODEL = '/models/boss/quaternius-orc-boss.glb'
+const FINISH_OVERHEAD_MODEL = '/models/finish/kenney-overhead.glb'
+const FINISH_FLAG_MODEL = '/models/finish/kenney-flag-checkers.glb'
+const FINISH_ROAD_END_MODEL = '/models/finish/kenney-road-end.glb'
 
 function createTextTexture(title: string, subtitle: string, accent: string) {
   const canvas = document.createElement('canvas')
@@ -120,6 +124,44 @@ function BossCharacter({ defeated, fighting }: { defeated: boolean; fighting: bo
 
 useGLTF.preload(BOSS_MODEL)
 
+function FinishZone() {
+  const overheadSource = useGLTF(FINISH_OVERHEAD_MODEL).scene
+  const flagSource = useGLTF(FINISH_FLAG_MODEL).scene
+  const roadEndSource = useGLTF(FINISH_ROAD_END_MODEL).scene
+  const overhead = useMemo(() => overheadSource.clone(true), [overheadSource])
+  const leftFlag = useMemo(() => flagSource.clone(true), [flagSource])
+  const rightFlag = useMemo(() => flagSource.clone(true), [flagSource])
+  const roadEnd = useMemo(() => roadEndSource.clone(true), [roadEndSource])
+
+  return (
+    <group>
+      <primitive object={overhead} position={[-2, 0, -344.55]} scale={4} />
+      <primitive object={leftFlag} position={[-2.32, 0, -343.7]} scale={2.1} />
+      <primitive object={rightFlag} position={[2.32, 0, -343.7]} scale={2.1} rotation={[0, Math.PI, 0]} />
+      <primitive object={roadEnd} position={[-2.5, 0.015, -352]} scale={5} />
+      {Array.from({ length: 20 }, (_, index) => {
+        const column = index % 10
+        const row = Math.floor(index / 10)
+        return (
+          <mesh key={index} rotation={[-Math.PI / 2, 0, 0]} position={[-2.25 + column * 0.5, 0.035, -343.75 - row * 0.45]}>
+            <planeGeometry args={[0.5, 0.45]} />
+            <meshBasicMaterial color={(column + row) % 2 === 0 ? '#f8fafc' : '#111827'} />
+          </mesh>
+        )
+      })}
+      <TextSign title="FINISH" subtitle="" accent="#facc15" position={[0, 2.05, -343.72]} size={[2.25, 0.88]} />
+      <group position={[0, 0.28, -353.4]}>
+        <mesh position={[0, 0.35, 0]}><boxGeometry args={[5.4, 0.7, 0.55]} /><meshStandardMaterial color="#0f172a" emissive="#7c3aed" emissiveIntensity={0.35} /></mesh>
+        <TextSign title="VICTORY" subtitle="TRACK COMPLETE" accent="#22d3ee" position={[0, 1.15, 0.3]} size={[3.4, 1.35]} />
+      </group>
+    </group>
+  )
+}
+
+useGLTF.preload(FINISH_OVERHEAD_MODEL)
+useGLTF.preload(FINISH_FLAG_MODEL)
+useGLTF.preload(FINISH_ROAD_END_MODEL)
+
 function MultiplierGate({ tier, earned }: {
   tier: (typeof MULTIPLIER_TIERS)[number]
   earned: number
@@ -173,6 +215,7 @@ export function BossManager({
   const finishMultiplier = useGameStore((state) => state.finishMultiplier)
   const [bossFighting, setBossFighting] = useState(false)
   const bossTriggered = useRef(false)
+  const meterTriggered = useRef(false)
   const bonusTierIndex = useRef(0)
   const previousZ = useRef(0)
   const fight = useRef({ active: false, elapsed: 0, strike: 0, remaining: balance.bossHealth })
@@ -181,6 +224,19 @@ export function BossManager({
   useFrame((_, frameDelta) => {
     const currentZ = crowdZRef.current
     if (isPaused) {
+      previousZ.current = currentZ
+      return
+    }
+
+    const currentState = useGameStore.getState()
+    if (!meterTriggered.current && crossedPlane(previousZ.current, currentZ, BOSS_METER_WORLD_Z)) {
+      meterTriggered.current = true
+      currentState.beginBossMeter()
+      previousZ.current = currentZ
+      return
+    }
+
+    if (currentState.runStage === 'meter') {
       previousZ.current = currentZ
       return
     }
@@ -258,13 +314,16 @@ export function BossManager({
 
     if (conversion.current.active) {
       conversion.current.elapsed += Math.min(frameDelta, 0.05)
-      if (conversion.current.elapsed >= 0.072) {
-        conversion.current.elapsed -= 0.072
+      if (conversion.current.elapsed >= 0.045) {
+        conversion.current.elapsed -= 0.045
         conversion.current.strike += 1
         const controller = crowdControllerRef.current
         const alive = controller?.getAliveCount() ?? 0
         const isFinalTier = conversion.current.tierIndex === MULTIPLIER_TIERS.length - 1
-        const batch = isFinalTier && alive > 40 ? 3 : isFinalTier && alive > 18 ? 2 : 1
+        const batch = isFinalTier && alive > 60 ? 6
+          : isFinalTier && alive > 30 ? 4
+            : isFinalTier && alive > 15 ? 3
+              : isFinalTier ? 2 : 1
         const requested = Math.min(batch, conversion.current.remaining)
         const removed = controller?.removeFront(batch, `bonus-${conversion.current.strike}`, {
           x: (conversion.current.strike % 3 - 1) * 2.25,
@@ -311,6 +370,7 @@ export function BossManager({
       {MULTIPLIER_TIERS.map((tier) => (
         <MultiplierGate key={tier.multiplier} tier={tier} earned={finishMultiplier} />
       ))}
+      <FinishZone />
     </>
   )
 }

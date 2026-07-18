@@ -29,6 +29,7 @@ import { useGameStore } from '../store/useGameStore'
 import { audioManager } from '../utils/audioManager'
 import { saveSelectedDifficulty, submitCompletedRun } from '../services/api'
 import { getNextLevelSelection } from '../utils/levelProgress'
+import { BOSS_METER_SEGMENTS, getBossMeterReward } from '../utils/bossMeter'
 
 // ─── Design tokens (same glass style as HomeScreen) ────────────────────────
 
@@ -38,6 +39,90 @@ const GLASS: CSSProperties = {
   background: 'linear-gradient(155deg, rgba(23,55,135,0.90), rgba(29,78,216,0.84))',
   border: '1.5px solid rgba(96,165,250,0.40)',
   boxShadow: '0 4px 18px rgba(0,0,0,0.40), inset 0 1px 0 rgba(255,255,255,0.09)',
+}
+
+const METER_RANGES = (() => {
+  let cursor = 0
+  return BOSS_METER_SEGMENTS.map((segment) => {
+    const start = cursor
+    cursor += segment.weight
+    return { ...segment, start, end: cursor }
+  })
+})()
+
+function meterPoint(angle: number, radius: number) {
+  const radians = angle * Math.PI / 180
+  return { x: 100 + Math.cos(radians) * radius, y: 100 + Math.sin(radians) * radius }
+}
+
+function meterSegmentPath(startPercent: number, endPercent: number) {
+  const startAngle = 180 + startPercent * 1.8
+  const endAngle = 180 + endPercent * 1.8
+  const outerStart = meterPoint(startAngle, 86)
+  const outerEnd = meterPoint(endAngle, 86)
+  const innerEnd = meterPoint(endAngle, 48)
+  const innerStart = meterPoint(startAngle, 48)
+  return `M ${outerStart.x} ${outerStart.y} A 86 86 0 0 1 ${outerEnd.x} ${outerEnd.y} L ${innerEnd.x} ${innerEnd.y} A 48 48 0 0 0 ${innerStart.x} ${innerStart.y} Z`
+}
+
+function BossPowerMeter({ onComplete }: { onComplete: (boost: number) => void }) {
+  const [position, setPosition] = useState(0)
+  const [lockedReward, setLockedReward] = useState<number | null>(null)
+  const completionTimer = useRef<number | null>(null)
+
+  useEffect(() => {
+    if (lockedReward !== null) return
+    let frame = 0
+    const startedAt = performance.now()
+    const animate = (now: number) => {
+      const phase = ((now - startedAt) % 1_650) / 1_650
+      setPosition(phase <= 0.5 ? phase * 2 : (1 - phase) * 2)
+      frame = requestAnimationFrame(animate)
+    }
+    frame = requestAnimationFrame(animate)
+    return () => cancelAnimationFrame(frame)
+  }, [lockedReward])
+
+  useEffect(() => () => {
+    if (completionTimer.current !== null) window.clearTimeout(completionTimer.current)
+  }, [])
+
+  const lockMeter = () => {
+    if (lockedReward !== null) return
+    const reward = getBossMeterReward(position)
+    setLockedReward(reward)
+    audioManager.playGateHit()
+    completionTimer.current = window.setTimeout(() => onComplete(reward), 700)
+  }
+  const pointerAngle = 180 + position * 180
+  const pointerEnd = meterPoint(pointerAngle, 72)
+
+  return (
+    <div className="absolute inset-0 z-30 flex items-center justify-center pointer-events-auto" style={{ background: 'rgba(2,6,23,0.68)', backdropFilter: 'blur(7px)' }}>
+      <button type="button" onClick={lockMeter} className="modal-enter flex flex-col items-center rounded-3xl" style={{ width: '88%', maxWidth: 340, padding: '22px 18px 18px', background: 'linear-gradient(160deg,rgba(30,41,89,0.98),rgba(76,29,149,0.96))', border: '2px solid rgba(216,180,254,0.7)', boxShadow: '0 20px 70px rgba(0,0,0,0.7),0 0 34px rgba(168,85,247,0.35)' }}>
+        <span style={{ color: '#f5d0fe', fontSize: 11, fontWeight: 900, letterSpacing: '0.18em' }}>BOSS BOOST</span>
+        <span style={{ color: '#fff', fontSize: 22, fontWeight: 900, marginTop: 3 }}>Lock your crowd bonus</span>
+        <svg viewBox="0 0 200 110" style={{ width: '100%', marginTop: 12, overflow: 'visible' }} aria-label="Boss crowd bonus meter">
+          {METER_RANGES.map((segment) => {
+            const middle = (segment.start + segment.end) / 2
+            const label = meterPoint(180 + middle * 1.8, 67)
+            return (
+              <g key={`${segment.reward}-${segment.start}`}>
+                <path d={meterSegmentPath(segment.start, segment.end)} fill={segment.color} stroke="#0f172a" strokeWidth="1.4" />
+                <text x={label.x} y={label.y + 3} fill="#fff" textAnchor="middle" fontSize={segment.reward === 20 ? 8 : 7} fontWeight="900">+{segment.reward}</text>
+              </g>
+            )
+          })}
+          <circle cx="100" cy="100" r="10" fill="#f8fafc" stroke="#312e81" strokeWidth="4" />
+          <line x1="100" y1="100" x2={pointerEnd.x} y2={pointerEnd.y} stroke="#fff" strokeWidth="4" strokeLinecap="round" style={{ filter: 'drop-shadow(0 0 5px #fff)' }} />
+        </svg>
+        <span style={{ minHeight: 30, color: lockedReward === null ? '#ddd6fe' : '#fef08a', fontWeight: 900, fontSize: lockedReward === null ? 13 : 24, letterSpacing: lockedReward === null ? '0.12em' : '0.04em' }}>
+          {lockedReward === null ? 'TAP TO STOP' : `+${lockedReward} CROWD!`}
+        </span>
+        <span style={{ color: 'rgba(221,214,254,0.7)', fontSize: 10, marginTop: 4 }}>The biggest bonus has the smallest target.</span>
+      </button>
+    </div>
+  )
 }
 
 // ─── Crowd counter pill ─────────────────────────────────────────────────────
@@ -624,6 +709,7 @@ export function GameScreen() {
   const handleResume = () => setPaused(false)
   const handleHome   = () => { setPaused(false); setPhase('home') }
   const handleRetry  = () => { resetGame() }  // App's gameKey key forces remount
+  const handleBossMeterComplete = (boost: number) => useGameStore.getState().applyBossMeterBoost(boost)
   const nextLevel = getNextLevelSelection(difficulty, selectedLevel)
   const handleNextLevel = () => {
     if (!nextLevel) return
@@ -760,6 +846,8 @@ export function GameScreen() {
         </div>
 
         {/* ── PAUSE OVERLAY (only while paused, not during game over or win) ── */}
+        {runStage === 'meter' && !isPaused && <BossPowerMeter onComplete={handleBossMeterComplete} />}
+
         {isPaused && phase !== 'gameover' && phase !== 'win' && (
           <PauseOverlay onResume={handleResume} onRestart={handleRetry} onHome={handleHome} />
         )}
