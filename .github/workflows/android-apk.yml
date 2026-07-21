@@ -34,10 +34,10 @@ jobs:
         run: |
           chmod +x ./gradlew
           ./gradlew assembleDebug --no-daemon
-          cp app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/MathRush3D-v1.1.0.apk
+          cp app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/MathRush3D-v1.2.0.apk
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: math-rush-3d-v1.1.0-apk
-          path: android/app/build/outputs/apk/debug/MathRush3D-v1.1.0.apk
+          name: math-rush-3d-v1.2.0-apk
+          path: android/app/build/outputs/apk/debug/MathRush3D-v1.2.0.apk
