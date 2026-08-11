@@ -1,0 +1,35 @@
+digraph G { graph [bgcolor="white", pad="0.35", nodesep="0.62", ranksep="0.78", splines=ortho, outputorder="edgesfirst", overlap=false]; node [fontname="Arial", fontsize=12, color="#0B2545", fontcolor="#1D2733", penwidth=1.5, margin="0.16,0.10"]; edge [fontname="Arial", fontsize=10, color="#5C6B7A", fontcolor="#5C6B7A", penwidth=1.3, arrowsize=0.75];
+      rankdir=TB; graph [splines=polyline, nodesep="0.48", ranksep="0.72"]; node [shape=ellipse, style="filled", fillcolor="#E8EEF5"];
+      title [shape=plaintext, label="Math Rush 3D use cases", fontname="Arial", fontsize=16, fontcolor="#0B2545"];
+      guest [shape=box, label="Guest", fillcolor="#FFF7DF"];
+      player [shape=box, label="Authenticated Player", fillcolor="#E6F4F6"];
+      admin [shape=box, label="Administrator
+(planned)", style="filled,dashed", fillcolor="#F4F6F9"];
+      register [label="Register or log in"];
+      choose [label="Choose difficulty
+and level"];
+      play [label="Play a run"];
+      board [label="View leaderboard
+and statistics"];
+      skins [label="Buy or equip skins"];
+      manage [label="Manage users, content
+and reports (planned)", style="filled,dashed"];
+      gates [label="Solve gate choices"];
+      obstacles [label="Avoid obstacles"];
+      boss [label="Defeat boss"];
+      results [label="Save score and
+progress"];
+      title -> player [style=invis, weight=30];
+      {rank=same; guest; player; admin;}
+      guest -> player -> admin [style=invis, weight=30];
+      {rank=same; register; choose; manage;}
+      register -> choose -> manage [style=invis, weight=30];
+      {rank=same; play; board; skins;}
+      play -> board -> skins [style=invis, weight=30];
+      {rank=same; gates; obstacles; boss; results;}
+      gates -> obstacles -> boss -> results [style=invis, weight=30];
+      guest -> register; guest -> play;
+      player -> choose; player -> play; player -> board; player -> skins;
+      play -> gates [style=dashed]; play -> obstacles [style=dashed]; play -> boss [style=dashed]; play -> results [style=dashed];
+      admin -> manage [style=dashed];
+    }

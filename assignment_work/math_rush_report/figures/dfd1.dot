@@ -1,0 +1,29 @@
+digraph G { graph [bgcolor="white", pad="0.35", nodesep="0.62", ranksep="0.78", splines=ortho, outputorder="edgesfirst", overlap=false]; node [fontname="Arial", fontsize=12, color="#0B2545", fontcolor="#1D2733", penwidth=1.5, margin="0.16,0.10"]; edge [fontname="Arial", fontsize=10, color="#5C6B7A", fontcolor="#5C6B7A", penwidth=1.3, arrowsize=0.75];
+      rankdir=TB; graph [ranksep="0.48"]; node [shape=box, style="rounded,filled", fillcolor="#E6F4F6", width=2.65, height=0.60];
+      player_in [label="Player
+(input)", fillcolor="#FFF7DF", width=1.7];
+      f_credentials [label="Email, password and device identity", fillcolor="#FFFFFF", color="#B8C6D5", fontcolor="#5C6B7A", height=0.42];
+      auth [label="1.0  Authenticate player"];
+      f_session [label="Verified session and player profile", fillcolor="#FFFFFF", color="#B8C6D5", fontcolor="#5C6B7A", height=0.42];
+      game [label="2.0  Run game locally"];
+      f_run [label="Run summary and event evidence", fillcolor="#FFFFFF", color="#B8C6D5", fontcolor="#5C6B7A", height=0.42];
+      submit [label="3.0  Validate and save run"];
+      f_rewards [label="Trusted score and reward values", fillcolor="#FFFFFF", color="#B8C6D5", fontcolor="#5C6B7A", height=0.42];
+      prog [label="4.0  Update progress and skins"];
+      f_progress [label="Progress, settings and unlock state", fillcolor="#FFFFFF", color="#B8C6D5", fontcolor="#5C6B7A", height=0.42];
+      report [label="5.0  Produce leaderboard and statistics"];
+      f_rankings [label="Rankings and player statistics", fillcolor="#FFFFFF", color="#B8C6D5", fontcolor="#5C6B7A", height=0.42];
+      player_out [label="Player
+(results)", fillcolor="#FFF7DF", width=1.7];
+      d1 [shape=cylinder, label="D1 Accounts
+and sessions", fillcolor="#E8EEF5"];
+      d2 [shape=cylinder, label="D2 Runs and
+event history", fillcolor="#E8EEF5"];
+      d3 [shape=cylinder, label="D3 Progress, settings
+and unlocks", fillcolor="#E8EEF5"];
+      player_in -> f_credentials -> auth -> f_session -> game -> f_run -> submit -> f_rewards -> prog -> f_progress -> report -> f_rankings -> player_out;
+      {rank=same; auth; d1;} auth -> d1 [dir=both, constraint=false];
+      {rank=same; submit; d2;} submit -> d2 [dir=both, constraint=false];
+      {rank=same; prog; d3;} prog -> d3 [dir=both, constraint=false];
+      d2 -> report [style=invis, constraint=false]; d3 -> report [style=invis, constraint=false];
+    }

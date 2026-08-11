@@ -1,0 +1,43 @@
+digraph G { graph [bgcolor="white", pad="0.35", nodesep="0.62", ranksep="0.78", splines=ortho, outputorder="edgesfirst", overlap=false]; node [fontname="Arial", fontsize=12, color="#0B2545", fontcolor="#1D2733", penwidth=1.5, margin="0.16,0.10"]; edge [fontname="Arial", fontsize=10, color="#5C6B7A", fontcolor="#5C6B7A", penwidth=1.3, arrowsize=0.75];
+      rankdir=TB; graph [ranksep="0.50"]; node [shape=box, style="rounded,filled", fillcolor="#E8EEF5", width=2.75, height=0.60];
+      start [shape=oval, label="Launch application", fillcolor="#FFF7DF"];
+      auth [label="Register or log in"]; home [label="Home screen"]; select [label="Select unlocked difficulty and level"]; run [label="Auto-run and steer crowd"];
+      gate [shape=diamond, label="Math gate reached?", fillcolor="#E6F4F6", width=2.6];
+      apply_gate [label="Apply selected answer"];
+      obs [shape=diamond, label="Obstacle or enemy contact?", fillcolor="#E6F4F6", width=3.1];
+      apply_hit [label="Apply collision to affected members"];
+      alive [shape=diamond, label="Crowd remaining?", fillcolor="#E6F4F6", width=2.65];
+      boss_reached [shape=diamond, label="Boss area reached?", fillcolor="#E6F4F6", width=2.8];
+      continue_run [label="Continue the course"];
+      meter [label="Stop the boss boost meter"];
+      boss [shape=diamond, label="Boss defeated?", fillcolor="#E6F4F6", width=2.55];
+      bonus [label="Run through bonus multipliers
+until the crowd is spent"];
+      win [label="Win: save score, stars, coins,
+progress and next level"];
+      lose [label="Game over: save run result", fillcolor="#FDECEC"];
+      end [shape=oval, label="Replay, next level or home", fillcolor="#FFF7DF"];
+      yes_gate [label="YES", shape=box, width=0.72, height=0.34, fillcolor="#E9F7F0", color="#8BC5A8", fontcolor="#18794E"];
+      no_gate [label="NO", shape=box, width=0.72, height=0.34, fillcolor="#F4F6F9", color="#B8C6D5", fontcolor="#5C6B7A"];
+      yes_obs [label="YES", shape=box, width=0.72, height=0.34, fillcolor="#FFF7DF", color="#D9BD70", fontcolor="#8A6508"];
+      no_obs [label="NO", shape=box, width=0.72, height=0.34, fillcolor="#F4F6F9", color="#B8C6D5", fontcolor="#5C6B7A"];
+      yes_alive [label="YES", shape=box, width=0.72, height=0.34, fillcolor="#E9F7F0", color="#8BC5A8", fontcolor="#18794E"];
+      no_alive [label="NO", shape=box, width=0.72, height=0.34, fillcolor="#FDECEC", color="#D7A0A0", fontcolor="#9B1C1C"];
+      yes_boss_area [label="YES", shape=box, width=0.72, height=0.34, fillcolor="#E9F7F0", color="#8BC5A8", fontcolor="#18794E"];
+      no_boss_area [label="NO", shape=box, width=0.72, height=0.34, fillcolor="#F4F6F9", color="#B8C6D5", fontcolor="#5C6B7A"];
+      yes_boss [label="YES", shape=box, width=0.72, height=0.34, fillcolor="#E9F7F0", color="#8BC5A8", fontcolor="#18794E"];
+      no_boss [label="NO", shape=box, width=0.72, height=0.34, fillcolor="#FDECEC", color="#D7A0A0", fontcolor="#9B1C1C"];
+      start -> auth -> home -> select -> run -> gate;
+      gate -> yes_gate -> apply_gate -> obs;
+      gate -> no_gate -> obs;
+      obs -> yes_obs -> apply_hit -> alive;
+      obs -> no_obs -> alive;
+      alive -> no_alive -> lose;
+      alive -> yes_alive -> boss_reached;
+      boss_reached -> no_boss_area -> continue_run;
+      continue_run -> run [constraint=false];
+      boss_reached -> yes_boss_area -> meter -> boss;
+      boss -> no_boss -> lose;
+      boss -> yes_boss -> bonus -> win -> end;
+      lose -> end;
+    }

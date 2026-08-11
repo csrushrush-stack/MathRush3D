@@ -1,0 +1,32 @@
+digraph G { graph [bgcolor="white", pad="0.35", nodesep="0.62", ranksep="0.78", splines=ortho, outputorder="edgesfirst", overlap=false]; node [fontname="Arial", fontsize=12, color="#0B2545", fontcolor="#1D2733", penwidth=1.5, margin="0.16,0.10"]; edge [fontname="Arial", fontsize=10, color="#5C6B7A", fontcolor="#5C6B7A", penwidth=1.3, arrowsize=0.75];
+      rankdir=TB; graph [ranksep="0.72"]; node [shape=box, style="rounded,filled", fillcolor="#E8EEF5", width=2.25, height=0.72];
+      subgraph cluster_client { label="Presentation tier"; color="#2E74B5"; style="rounded"; margin=22;
+        browser [label="Web browser
+React + Tailwind"];
+        android [label="Android APK
+Capacitor WebView"];
+        core [label="Shared client core
+R3F + Three.js + Zustand", fillcolor="#E6F4F6", width=3.0];
+        {rank=same; browser; android;}
+        browser -> core; android -> core;
+      }
+      api_link [label="HTTPS / JSON
+bearer session token", shape=box, style="rounded,filled", fillcolor="#FFFFFF", color="#B8C6D5", fontcolor="#5C6B7A", width=2.35, height=0.54];
+      subgraph cluster_api { label="Application tier"; color="#0E7490"; style="rounded"; margin=22;
+        api [label="Express REST API
+TypeScript + Zod", fillcolor="#E6F4F6", width=2.8];
+        auth [label="Authentication
+Sessions + bcrypt"];
+        rules [label="Reward rules
+and validation"];
+        {rank=same; auth; rules;}
+        api -> auth; api -> rules;
+      }
+      sql_link [label="Parameterised SQL", shape=box, style="rounded,filled", fillcolor="#FFFFFF", color="#B8C6D5", fontcolor="#5C6B7A", width=2.0, height=0.45];
+      subgraph cluster_data { label="Data tier"; color="#D59B14"; style="rounded"; margin=22;
+        pg [label="PostgreSQL
+Neon production", width=2.8];
+      }
+      core -> api_link -> api;
+      api -> sql_link -> pg;
+    }

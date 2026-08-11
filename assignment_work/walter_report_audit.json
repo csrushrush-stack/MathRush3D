@@ -1,0 +1,247 @@
+[
+  {
+    "paragraph_index": 37,
+    "source_words": 86,
+    "returned_words": 119,
+    "ratio": 1.384,
+    "accepted": true
+  },
+  {
+    "paragraph_index": 19,
+    "source_words": 48,
+    "returned_words": 61,
+    "ratio": 1.271,
+    "accepted": true
+  },
+  {
+    "paragraph_index": 38,
+    "source_words": 89,
+    "returned_words": 98,
+    "ratio": 1.101,
+    "accepted": true
+  },
+  {
+    "paragraph_index": 39,
+    "source_words": 99,
+    "returned_words": 784,
+    "ratio": 7.919,
+    "accepted": false
+  },
+  {
+    "paragraph_index": 40,
+    "source_words": 85,
+    "returned_words": 127,
+    "ratio": 1.494,
+    "accepted": true
+  },
+  {
+    "paragraph_index": 41,
+    "source_words": 85,
+    "returned_words": 98,
+    "ratio": 1.153,
+    "accepted": true
+  },
+  {
+    "paragraph_index": 42,
+    "source_words": 63,
+    "returned_words": 70,
+    "ratio": 1.111,
+    "accepted": true
+  },
+  {
+    "paragraph_index": 45,
+    "source_words": 56,
+    "returned_words": 68,
+    "ratio": 1.214,
+    "accepted": true
+  },
+  {
+    "paragraph_index": 47,
+    "source_words": 38,
+    "returned_words": 48,
+    "ratio": 1.263,
+    "accepted": true
+  },
+  {
+    "paragraph_index": 58,
+    "source_words": 59,
+    "returned_words": 72,
+    "ratio": 1.22,
+    "accepted": true
+  },
+  {
+    "paragraph_index": 61,
+    "source_words": 80,
+    "returned_words": 86,
+    "ratio": 1.075,
+    "accepted": true
+  },
+  {
+    "paragraph_index": 85,
+    "source_words": 87,
+    "returned_words": 180,
+    "ratio": 2.069,
+    "accepted": false
+  },
+  {
+    "paragraph_index": 94,
+    "source_words": 62,
+    "returned_words": 180,
+    "ratio": 2.903,
+    "accepted": false
+  },
+  {
+    "paragraph_index": 110,
+    "source_words": 32,
+    "returned_words": 39,
+    "ratio": 1.219,
+    "accepted": true
+  },
+  {
+    "paragraph_index": 118,
+    "source_words": 73,
+    "returned_words": 98,
+    "ratio": 1.342,
+    "accepted": true
+  },
+  {
+    "paragraph_index": 119,
+    "source_words": 61,
+    "returned_words": 180,
+    "ratio": 2.951,
+    "accepted": false
+  },
+  {
+    "paragraph_index": 120,
+    "source_words": 40,
+    "returned_words": 52,
+    "ratio": 1.3,
+    "accepted": true
+  },
+  {
+    "paragraph_index": 122,
+    "source_words": 91,
+    "returned_words": 124,
+    "ratio": 1.363,
+    "accepted": true
+  },
+  {
+    "paragraph_index": 123,
+    "source_words": 69,
+    "returned_words": 85,
+    "ratio": 1.232,
+    "accepted": true
+  },
+  {
+    "paragraph_index": 124,
+    "source_words": 45,
+    "returned_words": 55,
+    "ratio": 1.222,
+    "accepted": true
+  },
+  {
+    "paragraph_index": 126,
+    "source_words": 77,
+    "returned_words": 111,
+    "ratio": 1.442,
+    "accepted": true
+  },
+  {
+    "paragraph_index": 127,
+    "source_words": 64,
+    "returned_words": 63,
+    "ratio": 0.984,
+    "accepted": true
+  },
+  {
+    "paragraph_index": 129,
+    "source_words": 59,
+    "returned_words": 49,
+    "ratio": 0.831,
+    "accepted": true
+  },
+  {
+    "paragraph_index": 136,
+    "source_words": 51,
+    "returned_words": 53,
+    "ratio": 1.039,
+    "accepted": true
+  },
+  {
+    "paragraph_index": 138,
+    "source_words": 75,
+    "returned_words": 68,
+    "ratio": 0.907,
+    "accepted": true
+  },
+  {
+    "paragraph_index": 143,
+    "source_words": 59,
+    "returned_words": 72,
+    "ratio": 1.22,
+    "accepted": true
+  },
+  {
+    "paragraph_index": 144,
+    "source_words": 55,
+    "returned_words": 64,
+    "ratio": 1.164,
+    "accepted": true
+  },
+  {
+    "paragraph_index": 145,
+    "source_words": 37,
+    "returned_words": 44,
+    "ratio": 1.189,
+    "accepted": true
+  },
+  {
+    "paragraph_index": 148,
+    "source_words": 77,
+    "returned_words": 96,
+    "ratio": 1.247,
+    "accepted": true
+  },
+  {
+    "paragraph_index": 158,
+    "source_words": 61,
+    "returned_words": 96,
+    "ratio": 1.574,
+    "accepted": true
+  },
+  {
+    "paragraph_index": 163,
+    "source_words": 33,
+    "returned_words": 40,
+    "ratio": 1.212,
+    "accepted": true
+  },
+  {
+    "paragraph_index": 166,
+    "source_words": 77,
+    "returned_words": 107,
+    "ratio": 1.39,
+    "accepted": true
+  },
+  {
+    "paragraph_index": 168,
+    "source_words": 33,
+    "returned_words": 52,
+    "ratio": 1.576,
+    "accepted": true
+  },
+  {
+    "paragraph_index": 180,
+    "source_words": 75,
+    "returned_words": 57,
+    "ratio": 0.76,
+    "accepted": true
+  },
+  {
+    "paragraph_index": 181,
+    "source_words": 80,
+    "returned_words": 119,
+    "ratio": 1.488,
+    "accepted": true
+  }
+]

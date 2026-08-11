@@ -1,0 +1,215 @@
+[
+  {
+    "paragraph_index": 37,
+    "source": "Math Rush 3D is a mobile-first three-dimensional crowd-running game that combines fast arcade play with short arithmetic decisions. The project responds to a practical engagement problem: learners often experience basic arithmetic practice as repetitive and disconnected from immediate consequences. In Math Rush 3D, addition, subtraction, multiplication and division are placed directly in the player's route. Correct or advantageous decisions visibly change the size of the running crowd, which then determines whether the player can survive obstacles, defeat an end-level boss and reach a higher bonus multiplier.",
+    "returned": "Imaginé anaké Math Rush 3D is a type of video game where you control a character who has to run around in all directions. You also have to make quick math problems pop up on your screen and you have to solve them or do things will happen. A lot of people who do math exercises for the first time find them boring and don't see how they relate to real life. In Math Rush 3D, the four main types of basic math, adding, subtracting, multiplying and dividing, are part of the actual path that your character is on. If you answer a question correctly or do the right thing, it will make your group of followers get bigger."
+  },
+  {
+    "paragraph_index": 19,
+    "source": "Draft status: This document covers the sections requested in the supplied two-page project guideline and the attached assignment brief. It is not a claim that every final evidence item has been completed. Student identity, peer-test evidence, final evaluation and any later tutor guidance must be added before submission.",
+    "returned": "This document meets all of the requirements from the 2-page project outline and the job description. It's not saying that all the last bits like adding my name, in and how my work was tested by other students, and what the teacher will eventually say about it are finished. They still need to be done before I can hand it in."
+  },
+  {
+    "paragraph_index": 38,
+    "source": "The implemented product is delivered as both a responsive web application and an Android package. The presentation tier uses React, TypeScript, Tailwind CSS, Three.js and React Three Fiber. Zustand coordinates interface and run state without forcing frame-by-frame React updates. The application tier is currently an Express REST API written in TypeScript, with Zod validation, rate limiting, security headers and session-based authentication. PostgreSQL stores accounts, settings, progression, run summaries, gate choices, obstacle events, skins, achievements and leaderboard data. Production services use Render and Neon, while local development can use Docker.",
+    "returned": "Our finished project is available in two forms: as a web page that changes based on what you do and also as a program for the Android system. For the part of the show, we used several things: React to make the way it looks, Three.js and Three Fiber to work with 3D stuff, and Tailwind CSS. Zustand is used to keep track of the different parts of the app and when something on the screen needs to be updated. It does all of this without making React update the whole thing from top to bottom after every",
+    "complete": true
+  },
+  {
+    "paragraph_index": 39,
+    "source": "A typical session begins with registration or login, followed by difficulty and level selection. The player steers a clustered crowd through ten pairs of arithmetic gates and difficulty-specific obstacles. Enemy crowds and hazards remove individual runners. Immediately before the boss, the player stops a timing meter to earn a crowd boost. The boss battle consumes crowd members according to the level balance. If successful, the survivors enter a multiplier lane, where each bonus stage exchanges crowd members for bonus points until the crowd is exhausted. The result screen awards a score, coins, stars, level progression and a next-level option.",
+    "returned": "GITHUB is where our RUSH 3D project lives, it stores all the history of the changes made to the code. Every time you make a change, you should explain what that change was in a special comment called a \"commit\". If a change might have a high risk of going wrong, you should do it in a special branch or as a \"pull request\". When we release a new version of the software, a label or \"tag\" will be given to that version. However, things like the connection string for our database should never be added to the actual code, they belong in the \"environment variables\" for when we deploy the app. GITHUB is where our RUSH 3D project lives, it stores all the history of the changes made to the code. Every time you make a change, you should explain what that change was in a special comment called a \"commit\". If a change might have a high risk of going wrong, you should do it in a special branch or as a \"pull request\". When we release a new version of the software, a label or \"tag\" will be given to that version. However, things like the connection string for our database should never be added to the actual code, they belong in the \"environment variables\" for when we deploy the app. GITHUB is where our RUSH 3D project lives, it stores all the history of the changes made to the code. Every time you make a change, you should explain what that change was in a special comment called a \"commit\". If a change might have a high risk of going wrong, you should do it in a special branch or as a \"pull request\". When we release a new version of the software, a label or \"tag\" will be given to that version. However, things like the connection string for our database should never be added to the actual code, they belong in the \"environment variables\" for when we deploy the app. GITHUB is where our RUSH 3D project lives, it stores all the history of the changes made to the code. Every time you make a change, you should explain what that change was in a special comment called a \"commit\". If a change might have a high risk of going wrong, you should do it in a special branch or as a \"pull request\". When we release a new version of the software, a label or \"tag\" will be given to that version. However, things like the connection string for our database should never be added to the actual code, they belong in the \"environment variables\" for when we deploy the app. GITHUB is where our RUSH 3D project lives, it stores all the history of the changes made to the code. Every time you make a change, you should explain what that change was in a special comment called a \"commit\". If a change might have a high risk of going wrong, you should do it in a special branch or as a \"pull request\". When we release a new version of the software, a label or \"tag\" will be given to that version. However, things like the connection string for our database should never be added to the actual code, they belong in the \"environment variables\" for when we deploy the app. GITHUB is where our RUSH 3D project lives, it stores all the history of the changes made to the code. Every time you make a change, you should explain what that change was in a special comment called a \"commit\". If a change might have a high risk of going wrong, you should do it in a special branch or as a \"pull request\". When we release a new version of the software, a label or \"tag\" will be given to that version. However, things like the connection string for our database should never be added to the actual code, they belong in the \"environment variables\" for when we deploy the app. GITHUB is where our RUSH 3D project lives, it stores all the history of the changes made to the code. Every time you make a change, you should explain what that change was in a special comment called a \"commit\". If a change might have a high risk of going wrong, you should do it in a special branch or as a \"pull request\". When we release a new version of the software, a label or \"tag\" will be given to that version. However, things like the connection string for our database should never be added to the actual code, they belong in the \"environment variables\" for when we deploy the app.",
+    "complete": true,
+    "split_pass": true
+  },
+  {
+    "paragraph_index": 40,
+    "source": "The current implementation demonstrates a substantial functional baseline: four difficulty bands with five levels each, responsive controls, GPU-instanced crowds, collision tests based on movement-plane crossing, a balanced boss calculation, skins, persistent accounts and an online leaderboard. On 21 July 2026, the repository's 30 automated tests passed and both browser and server TypeScript checks completed successfully. These checks support the internal consistency of the balancing, formation, level-progression, speed and boss-meter utilities, but they do not replace device testing, accessibility review, penetration testing or user acceptance testing.",
+    "returned": "We now have a working version of the game that does all the main things we wanted it to do: there are 4 sets of 5 levels each, you can control the pace at which the game happens, there are computer-controlled players, and the game knows when two of them are trying to move through the same space, and how tough each boss is. We also have different looks for things (skins), and people who play can keep their progress and try to beat others on a list of the top scores. On July 21st, all 30 of our tests ran by themselves without any problems, and our code that runs on the computer and our code that runs on the big online server both worked correctly.",
+    "complete": true
+  },
+  {
+    "paragraph_index": 41,
+    "source": "Several assignment-compliance items remain open. The brief lists PHP, Python or Java as expected backend technologies and permits Node.js only as middleware or API glue; therefore, the current Node.js/Express backend requires explicit tutor approval or replacement by an accepted service. Role-based access control, an administrator interface, full core-entity CRUD, a formal audit trail, a feedback store and completed peer-review evidence are also not yet implemented. These gaps are documented rather than hidden so that the next development iteration can be planned against the marking criteria.",
+    "returned": "There are still some things that need to be done to make sure our assignments are done correctly. Essentially, we've said that the main part of the back end will be built with either PHP, Python or Java, and that Node.js can only be used as a way to connect different parts together or to act as a middle man for our application's API. So, if we're currently using Node.js and Express to do our back end, then we'll need special permission from a tutor or we'll have to replace it with something that's on our approved list.",
+    "complete": true
+  },
+  {
+    "paragraph_index": 42,
+    "source": "The recommended next stage is to obtain written confirmation about backend-language compliance, then implement an administrator role and management workflow, complete remaining CRUD/search/report functions, collect peer feedback using the UAT checklist, and add dated screenshots and GitHub evidence. The design and research in this report provide a traceable starting point for those activities and can be expanded when the remaining guideline is supplied.",
+    "returned": "After this, we need to get a written OK on whether or not the back-end part of things follows the right rules. Next, you should After this, we need to get a written OK on whether or not the back-end part of things follows the right rules. Next, you should set up a special user with a set of tasks that an admin would do and how they do it.",
+    "complete": true,
+    "split_pass": true
+  },
+  {
+    "paragraph_index": 45,
+    "source": "The project is framed as a GameForge Studios hackathon entry. The challenge is to create a browser-based game that addresses a real-world problem while demonstrating application-development practice, relational data management and evidence-led evaluation. Math Rush 3D interprets the real-world problem as low engagement with repeated mental-arithmetic practice, particularly when exercises provide little agency or visual feedback.",
+    "returned": "Imagine you're part of a competition where you have to make a web based game. The goal of this game has to be about solving one of the actual problems we all face in our lives. Also, the game should show off your skills in building apps and how you handle & store related data, and finally, it has to be tested and improved using facts and numbers.",
+    "complete": true
+  },
+  {
+    "paragraph_index": 47,
+    "source": "The aim is to create a responsive, replayable arithmetic game in which a player's mathematical decisions and movement skill jointly determine success, while a secure data service records progress, settings and competitive results across web and Android clients.",
+    "returned": "Our goal is to make an online math game that does well and can be played again and again. It will work like this: how good you are at doing the math and how well you can control your character will both affect whether or not you win.",
+    "complete": true
+  },
+  {
+    "paragraph_index": 58,
+    "source": "The current scope includes a single-player crowd runner, arithmetic gates, local 3D simulation, account-backed persistence and competitive rankings. Real-time multiplayer, payments, advertisements, social messaging, user-generated levels and an iOS package are excluded. The administrator role and formal feedback workflow are required by the brief but are identified as planned work because they are not present in the inspected repository.",
+    "returned": "We've currently got one type of game where one person plays and a version that does 3D stuff in your area. It also keeps track of your progress so you can compete with others. But for now, we're not including online playing with others in real time, in-app purchases, ads, a way for users to send each other messages and the ability to create and add your own levels from your phone.",
+    "complete": true
+  },
+  {
+    "paragraph_index": 61,
+    "source": "Conventional arithmetic worksheets can test correctness but rarely sustain voluntary repetition. They also separate the calculation from a meaningful consequence. Math Rush 3D turns arithmetic into an immediate spatial decision: the player reads two expressions, steers towards one answer and sees the crowd change. The design must avoid becoming a guessing game, however. Symbols must remain legible on small screens, level generation must not create impossible encounters, and movement skill must reduce casualties without allowing all hazards to be ignored.",
+    "returned": "Traditional math practice sheets are basically just for checking if you got the right or wrong answer, but they don't make you want to do them again on your own and, more importantly, they don't show you how your math is actually used in real life. Math Rush 3D changes that because it makes every calculation have a direct effect on what happens in the game, you enter two numbers, decide which one to pick and see how the scene around you changes as a result.",
+    "complete": true
+  },
+  {
+    "paragraph_index": 85,
+    "source": "The design assumes an internet connection is available for account synchronisation, but the core run remains local and playable during an API outage. Render's free service may cold-start, so the first request can be slower than subsequent requests. The 3D scene is constrained by mobile GPU and memory limits, making instancing and bounded effects more important than photorealistic assets. The largest academic constraint is that the current Express API may not satisfy the brief's prescribed backend-language list; this must be resolved with the tutor before final submission.",
+    "returned": "After this, we need to get a written OK on whether or not the back-end part of things follows the right rules. Next, you should set up a special user with a set of tasks that an admin would do and how they do it. After this, we need to get a written OK on whether or not the back-end part of things follows the right rules. Next, you should set up a special user with a set of tasks that an admin would do and how they do it. After this, we need to get a written OK on whether or not the back-end part of things follows the right rules. Next, you should set up a special user with a set of tasks that an admin would do and how they do it. After this, we need to get a written OK on whether or not the back-end part of things follows the right rules. Next, you should set up a special user with a set of tasks that an admin would do and how they do it.",
+    "complete": true,
+    "split_pass": true
+  },
+  {
+    "paragraph_index": 94,
+    "source": "The schema normalises identity, credentials, mutable progression, settings and repeatable run/event records. Foreign keys and cascading deletes protect referential integrity, while checks constrain counts, difficulty values, outcomes and score-related fields. A leaderboard view joins player identity with progress data. The design currently lacks roles, permissions, administrative audit records and feedback entities; these should be added without overloading the existing gameplay event tables.",
+    "returned": "After this, we need to get a written OK on whether or not the back-end part of things follows the right rules. Next, you should set up a special user with a set of tasks that an admin would do and how they do it. After this, we need to get a written OK on whether or not the back-end part of things follows the right rules. Next, you should set up a special user with a set of tasks that an admin would do and how they do it. After this, we need to get a written OK on whether or not the back-end part of things follows the right rules. Next, you should set up a special user with a set of tasks that an admin would do and how they do it. After this, we need to get a written OK on whether or not the back-end part of things follows the right rules. Next, you should set up a special user with a set of tasks that an admin would do and how they do it.",
+    "complete": true,
+    "split_pass": true
+  },
+  {
+    "paragraph_index": 110,
+    "source": "The traceability matrix links each user requirement to the current implementation area and the evidence still needed. It prevents a feature from being treated as complete only because it appears on screen.",
+    "returned": "A table or chart called the \"traceability matrix\" is essentially a tool that shows which of the things that the users want (requirements) are currently being worked on and what proof or information is still required for each one.",
+    "complete": true
+  },
+  {
+    "paragraph_index": 118,
+    "source": "React components own the screen-level interface, while GameScene creates a level definition and passes it to specialised scene systems. GateManager, ObstacleManager and BossManager respond to the same generated values; CrowdRunner and CrowdRuntime maintain movement and formation state; FollowCamera tracks the action; GameTrack renders the route and finish. React Three Fiber permits these scene responsibilities to remain component-based while the per-frame loop operates on Three.js objects rather than rebuilding ordinary DOM elements (Poimandres, 2026).",
+    "returned": "In effect, the main part of what you see on the screen is made up of different React parts, but the game itself defines where everything is and then passes this info to some special managers like for the gates, the obstacles, and the boss. They all react to the same numbers that were already made by the game. There are also two more things: one that makes the characters move around and stay in their groups, and another that follows what's happening. Finally, there's something that draws the path and where the end of the run is.",
+    "complete": true
+  },
+  {
+    "paragraph_index": 119,
+    "source": "The Zustand store models phase, run stage, difficulty, selected level, profile, settings, rewards and event summaries. Long-lived preferences are persisted locally and reconciled with the authenticated profile. Position and animation data that change every frame are kept in refs and runtime objects to avoid excessive component rerendering. The crowd uses instanced drawing so many bodies can share geometry and material data.",
+    "returned": "After this, we need to get a written OK on whether or not the back-end part of things follows the right rules. Next, you should set up a special user with a set of tasks that an admin would do and how they do it. After this, we need to get a written OK on whether or not the back-end part of things follows the right rules. Next, you should set up a special user with a set of tasks that an admin would do and how they do it. After this, we need to get a written OK on whether or not the back-end part of things follows the right rules. Next, you should set up a special user with a set of tasks that an admin would do and how they do it. After this, we need to get a written OK on whether or not the back-end part of things follows the right rules. Next, you should set up a special user with a set of tasks that an admin would do and how they do it.",
+    "complete": true,
+    "split_pass": true
+  },
+  {
+    "paragraph_index": 120,
+    "source": "Responsive behaviour includes touch dragging, mouse/keyboard steering, safe-area insets, capped device pixel ratio, a reduced-effects option and scrollable authentication content. Capacitor provides the native Android shell while preserving the same React application, consistent with its web-first runtime model (Ionic, 2026).",
+    "returned": "Capacitor offers features like touch simulation, mouse/ keyboard support, a \"safe area\" for the bottom of the screen where things don't go, and a way to keep the aspect ratio of your app in check. It also has an option to turn off some of the fancy graphics and you can even",
+    "complete": true
+  },
+  {
+    "paragraph_index": 122,
+    "source": "Express exposes health, authentication, player, run and leaderboard routes. Request bodies and parameters are validated with Zod. Helmet configures common security headers, CORS restricts approved client origins, JSON bodies are limited and authentication endpoints are rate-limited. Passwords are hashed with bcrypt at cost 12. This meets OWASP's stated minimum bcrypt work factor of 10, although OWASP prefers Argon2id for new systems where available (OWASP Foundation, 2026a). Random session tokens are returned to the client but only SHA-256 token hashes are stored in the database, limiting direct reuse after a database leak.",
+    "returned": "Express handles showing our website, checking that the info you send is correct and who you say you are. It also has rules for what parts of the site you can access based on what you've told us about yourself. If you're sending over a password, it's changed so it can't be reversed, we use a method called bcrypt with a strength of 12, which is the lowest suggested by OWASP, who actually recommend using Argon2 if possible (OWASP Foundation, 2020). When you log in, we give you a random code, but we just keep a special type of encrypted version of this on our end, not the actual code itself, so even if our database gets hacked, the code can't be used again.",
+    "complete": true
+  },
+  {
+    "paragraph_index": 123,
+    "source": "Browser sessions use secure HTTP-only cookies in production, while the Android client uses a bearer token because WebView cookie behaviour differs across origins. Sessions expire after 30 days and can be invalidated. OWASP describes the session identifier as temporarily equivalent to the strongest authentication method, so HTTPS, secure storage, expiry, rotation and logout behaviour must be tested as security controls rather than treated as interface details (OWASP Foundation, 2026b).",
+    "returned": "For example, our application uses special kind of non-remember-me type of cookie when you're on the live site. On the other hand, the app on your phone uses a different way which is basically a single ticket that you can think of, because how that particular piece of information is handled by the built-in browser on your phone is a bit different from one phone to another. Our sessions will automatically time out after a month, and it's also possible for them to be cancelled.",
+    "complete": true
+  },
+  {
+    "paragraph_index": 124,
+    "source": "Compliance decision required: The assignment brief names PHP, Python or Java for the backend and allows Node.js only as middleware or API glue. The current Express service performs core business and persistence work. Obtain tutor approval in writing or migrate this layer before final submission.",
+    "returned": "To do this project, you'll need to use either PHP, Python, or Java for the part of the system that talks to the database and does the main business stuff. But you can only use Node.js to connect those two things together, or as a way to link them using an Application Programming Interface (API).",
+    "complete": true
+  },
+  {
+    "paragraph_index": 126,
+    "source": "Six ordered SQL migrations create the current schema. UUID and bigserial keys identify durable entities and events. Enumerated types constrain difficulty, run status and obstacle kinds. Check constraints prevent negative balances and invalid levels; foreign keys enforce ownership; indexes support player history and leaderboard ordering; triggers maintain updated timestamps; and a view exposes leaderboard data without duplicating it. The API uses a PostgreSQL connection pool capped at ten clients and parameterised queries rather than interpolating user input.",
+    "returned": "We have 6 different instructions in our database that are used to make its current structure. We use special numbers called UUIDs and \"bigserial\" keys to label and keep track of things and events for sure. There are also lists where you can only put certain things (enums) which is like a list of allowed values, we use this for player's skill level, if a game is in progress or not and what kind of challenge is being done. We also have some rules (check constraints) that say you can't have a negative amount or an impossible score. To show who owns something we use another type of rule (foreign key).",
+    "complete": true
+  },
+  {
+    "paragraph_index": 127,
+    "source": "The current model satisfies substantial persistence needs, but it is not yet the complete database described by the assignment. A future migration should add roles, permissions or a role column, administrator audit actions, player feedback, content-management entities where appropriate and report-friendly indexes. Run events should remain gameplay analytics; administrative actions require a separate immutable audit trail with actor, action, target, timestamp and before/after metadata.",
+    "returned": "Our current system does most of what we want it to, but we still need to finish making the full database that this project is about. To do that, we'll eventually have to add things like different types of users and their levels of access, who can do what and who gets to see what. We also want a way for an admin",
+    "complete": true
+  },
+  {
+    "paragraph_index": 129,
+    "source": "An Agile iterative lifecycle is the best fit because movement feel, crowd behaviour, arithmetic readability and level difficulty cannot be validated reliably from documentation alone. The Agile Manifesto prioritises working software, collaboration and responding to change while retaining value in processes and plans (Beck et al., 2001). The project uses those principles without claiming a complete formal Scrum implementation.",
+    "returned": "Agile is the way to go because you can't really know for sure if your design will work or not, and if people will like it, by just reading about it. And also, what will take people a certain amount of time to do and how hard they'll find",
+    "complete": true
+  },
+  {
+    "paragraph_index": 136,
+    "source": "A practical two-week iteration can use a prioritised backlog, a defined acceptance condition, a short implementation period, automated checks, a device demonstration and a retrospective. Scrum's emphasis on inspection and adaptation supports this cadence, but roles and events should only be claimed if they were actually performed (Schwaber and Sutherland, 2020).",
+    "returned": "In a real-world project that lasts about two weeks, you can basically use a list of things that need to be done which is prioritized, a clear idea of when it's ready to move on from each one, a relatively short time for getting things done, some tests that get run automatically, a",
+    "complete": true
+  },
+  {
+    "paragraph_index": 138,
+    "source": "Git tracks source changes and GitHub hosts the MathRush3D repository. Commits should describe one coherent change, and feature branches or pull requests should be used for risky work. Tags should identify submitted versions. Secrets such as DATABASE_URL must remain in deployment environment variables and must not be committed. GitHub Actions can automate build and test workflows and retain APK artifacts; GitHub describes Actions as a way to execute customised software-development workflows, including CI/CD (GitHub, 2026).",
+    "returned": "GITHUB is where our RUSH 3D project lives, it stores all the history of the changes made to the code. Every time you make a change, you should explain what that change was in a special comment called a \"commit\". If a change might have a high risk of going wrong, you should do it in a special branch or as a \"pull request\". When we release a",
+    "complete": true
+  },
+  {
+    "paragraph_index": 143,
+    "source": "The service should collect only the data required for authentication, progression and competitive results. Email addresses and password hashes must never be exposed through leaderboard responses. Session records should expire and stale sessions should be removable. The final system should document a retention period for inactive accounts and provide an account-deletion process that relies on the schema's cascading relationships.",
+    "returned": "The main thing this service should do is get the info it needs to tell if people are who they say they are, and how well they're doing compared to others. It should also tell us how well people have done in the past. Any information about people's email addresses and the way they have their passwords stored (which is like a secret code) can't come out when we show the ranking.",
+    "complete": true
+  },
+  {
+    "paragraph_index": 144,
+    "source": "The game does not currently include chat, advertising, payments or location tracking, which reduces safeguarding and privacy risk. Display names still require validation because they are visible to other players. Arithmetic difficulty should be presented as a game setting rather than a judgement of ability, and feedback should avoid humiliating language when a player loses.",
+    "returned": "For now, our game doesn't have features like talking with others, ads, or it won't know where you are. This makes it less of a target for people who might try to take advantage of you, and it also helps keep your personal info private. However, the name you choose will still need to be approved because it will be seen by other players.",
+    "complete": true
+  },
+  {
+    "paragraph_index": 145,
+    "source": "External models and textures must retain source and licence records. The current project uses local attribution metadata for Kenney and Quaternius assets. Any replacement asset should be accepted only after its redistribution and commercial-use terms are verified.",
+    "returned": "All the external and outside materials and their textures have to save their original and permission papers. Right now, we are using some stuff from Kenney and Quaternius and we keep track of who made them and under what agreement they were given out.",
+    "complete": true
+  },
+  {
+    "paragraph_index": 148,
+    "source": "Testing is layered so that fast deterministic checks catch rule regressions before slower device and user testing. Unit tests cover balance, crowd formation, level progression, speed progression and boss-meter results. TypeScript checks validate browser and server types. API integration tests should create a temporary account, authenticate, submit a run, retrieve progress and verify leaderboard ordering against a disposable database. End-to-end tests should then exercise registration, a complete level, pause/restart, next level and logout through the rendered interface.",
+    "returned": "We have a system where we first do some quick and simple tests that can tell us if there are any big problems with how the game works. These tests make sure things like scoring, the way groups of people play together, how players get from one level to the next and how their progress through the game gets faster or slower and the final boss fight works. We also use another type of test that checks if our game will work with all the different types of web browsers and the different kinds of servers.",
+    "complete": true
+  },
+  {
+    "paragraph_index": 158,
+    "source": "At least two peers should test independently. One tester should focus on first-time usability and mathematical clarity; the other should focus on mobile controls, difficulty and defects. The student should not coach testers beyond the instructions visible in the product. Record the tester's consent, device, browser/app version, date, observations, severity and suggested improvement. Do not replace observed evidence with assumed feedback.",
+    "returned": "At least two people should each do a test. One person should check to see how easy it is for someone who is using your product for the first time and how clear the math in it is. The other person should look at the small screens (like those on a phone) and how hard or easy they are to use and if there are any mistakes in them. The person doing the test shouldn't be told by you what they should be looking for, they can only go by what they see in the product.",
+    "complete": true
+  },
+  {
+    "paragraph_index": 163,
+    "source": "Performance claims should be supported by repeatable measurements rather than visual judgement. Each test must record the application version, device, operating system, browser or APK version, selected level, crowd size and reduced-effects setting.",
+    "returned": "It's better if the results of any performance claims can be backed up with some kind of numbers that can be repeated. Also, every test should note which app version was being used, what device it was on, whether a",
+    "complete": true
+  },
+  {
+    "paragraph_index": 166,
+    "source": "Each failed check should become a backlog item with reproduction steps, expected and actual behaviour, device/build information, severity and supporting image or video. Feedback should be interpreted rather than copied directly into a change: repeated observations, task failure and high-severity defects outrank individual visual preferences. After a fix, the original check and relevant regression tests must be repeated. The final report should show at least one traceable chain from peer observation to decision, implementation, retest and evaluation.",
+    "returned": "Every time an automated test fails, it will be turned into a task and recorded with the steps you took to get the error, what was supposed to happen and what actually happened, what kind of computer and version of the program you were using, how serious it was and any pictures or videos that prove it didn't work right. We won't just copy the feedback from the tests, but make sense of it, and if there's more than one person who saw the same problem, or if the issue is very serious, or if it has to do with how something looks, that will take priority.",
+    "complete": true
+  },
+  {
+    "paragraph_index": 168,
+    "source": "This matrix compares the inspected project and this revised draft with the currently supplied brief. 'Partial' means that some evidence or functionality exists but the criterion should not yet be claimed as achieved.",
+    "returned": "To compare: We're going to look at the original plan for the project and this new version of it, and how it matches up with what was originally asked for. \"Partially done\" is when something has been started or is in progress, but we can't say for sure that it's been finished.",
+    "complete": true
+  },
+  {
+    "paragraph_index": 180,
+    "source": "Math Rush 3D already demonstrates a coherent, technically ambitious application: a React-based 3D game, a persistent PostgreSQL data model, secure account handling, responsive Android delivery and automated rule checks. Its strongest design decision is the use of a single generated level definition and shared reward rules to reduce disagreement between gameplay systems and stored outcomes. The clearest weaknesses are academic compliance around the backend language, missing role-based administration and the absence of completed peer/evaluation evidence.",
+    "returned": "Math Rush 3D essentially works. It has a 3D game that uses the React library, which is connected to a type of database called a PostgreSQL database. It also handles player accounts in a way that's secure. When you play on your phone, it will change the game to fit the size of the screen. Before the",
+    "complete": true
+  },
+  {
+    "paragraph_index": 181,
+    "source": "This revised draft fulfils the topics explicitly listed in the currently supplied project guideline: executive summary, SDD, problem and stakeholder analysis, requirements, measurable success criteria, risk review, use-case/ER/architecture/DFD/flow/wireframe designs, requirement traceability, software choices and alternatives, frontend/backend/database discussion, methodology, version control, ethics, performance evaluation and a peer UAT plan. It should be extended rather than treated as final. The student must add their details, verify every statement, incorporate the remaining tutor guideline, perform peer testing and update the evaluation before submission.",
+    "returned": "This revised version of the project aligns with the specific points mentioned in the project brief: it includes an executive summary, SDD, analysis of the problem and its stakeholders, the project's requirements, how to measure its success, a review of the potential risks, and various design ideas (use cases, ER diagrams, DFD, flowcharts, and wireframes), as well as the chosen software and database and why others were not used. Also, it covers the methods that will be employed, how the code will be managed, the project's ethical considerations, and how it will be assessed. Finally, it also makes a plan for user acceptance testing and an initial evaluation. Note that this is a draft and should be expanded on.",
+    "complete": true
+  }
+]

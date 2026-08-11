@@ -1,0 +1,142 @@
+[
+  {
+    "paragraph_index": 19,
+    "source": "Draft status: This document covers the sections requested in the supplied two-page project guideline and the attached assignment brief. It is not a claim that every final evidence item has been completed. Student identity, peer-test evidence, final evaluation and any later tutor guidance must be added before submission."
+  },
+  {
+    "paragraph_index": 37,
+    "source": "Math Rush 3D is a mobile-first three-dimensional crowd-running game that combines fast arcade play with short arithmetic decisions. The project responds to a practical engagement problem: learners often experience basic arithmetic practice as repetitive and disconnected from immediate consequences. In Math Rush 3D, addition, subtraction, multiplication and division are placed directly in the player's route. Correct or advantageous decisions visibly change the size of the running crowd, which then determines whether the player can survive obstacles, defeat an end-level boss and reach a higher bonus multiplier."
+  },
+  {
+    "paragraph_index": 38,
+    "source": "The implemented product is delivered as both a responsive web application and an Android package. The presentation tier uses React, TypeScript, Tailwind CSS, Three.js and React Three Fiber. Zustand coordinates interface and run state without forcing frame-by-frame React updates. The application tier is currently an Express REST API written in TypeScript, with Zod validation, rate limiting, security headers and session-based authentication. PostgreSQL stores accounts, settings, progression, run summaries, gate choices, obstacle events, skins, achievements and leaderboard data. Production services use Render and Neon, while local development can use Docker."
+  },
+  {
+    "paragraph_index": 39,
+    "source": "A typical session begins with registration or login, followed by difficulty and level selection. The player steers a clustered crowd through ten pairs of arithmetic gates and difficulty-specific obstacles. Enemy crowds and hazards remove individual runners. Immediately before the boss, the player stops a timing meter to earn a crowd boost. The boss battle consumes crowd members according to the level balance. If successful, the survivors enter a multiplier lane, where each bonus stage exchanges crowd members for bonus points until the crowd is exhausted. The result screen awards a score, coins, stars, level progression and a next-level option."
+  },
+  {
+    "paragraph_index": 40,
+    "source": "The current implementation demonstrates a substantial functional baseline: four difficulty bands with five levels each, responsive controls, GPU-instanced crowds, collision tests based on movement-plane crossing, a balanced boss calculation, skins, persistent accounts and an online leaderboard. On 21 July 2026, the repository's 30 automated tests passed and both browser and server TypeScript checks completed successfully. These checks support the internal consistency of the balancing, formation, level-progression, speed and boss-meter utilities, but they do not replace device testing, accessibility review, penetration testing or user acceptance testing."
+  },
+  {
+    "paragraph_index": 41,
+    "source": "Several assignment-compliance items remain open. The brief lists PHP, Python or Java as expected backend technologies and permits Node.js only as middleware or API glue; therefore, the current Node.js/Express backend requires explicit tutor approval or replacement by an accepted service. Role-based access control, an administrator interface, full core-entity CRUD, a formal audit trail, a feedback store and completed peer-review evidence are also not yet implemented. These gaps are documented rather than hidden so that the next development iteration can be planned against the marking criteria."
+  },
+  {
+    "paragraph_index": 42,
+    "source": "The recommended next stage is to obtain written confirmation about backend-language compliance, then implement an administrator role and management workflow, complete remaining CRUD/search/report functions, collect peer feedback using the UAT checklist, and add dated screenshots and GitHub evidence. The design and research in this report provide a traceable starting point for those activities and can be expanded when the remaining guideline is supplied."
+  },
+  {
+    "paragraph_index": 45,
+    "source": "The project is framed as a GameForge Studios hackathon entry. The challenge is to create a browser-based game that addresses a real-world problem while demonstrating application-development practice, relational data management and evidence-led evaluation. Math Rush 3D interprets the real-world problem as low engagement with repeated mental-arithmetic practice, particularly when exercises provide little agency or visual feedback."
+  },
+  {
+    "paragraph_index": 47,
+    "source": "The aim is to create a responsive, replayable arithmetic game in which a player's mathematical decisions and movement skill jointly determine success, while a secure data service records progress, settings and competitive results across web and Android clients."
+  },
+  {
+    "paragraph_index": 58,
+    "source": "The current scope includes a single-player crowd runner, arithmetic gates, local 3D simulation, account-backed persistence and competitive rankings. Real-time multiplayer, payments, advertisements, social messaging, user-generated levels and an iOS package are excluded. The administrator role and formal feedback workflow are required by the brief but are identified as planned work because they are not present in the inspected repository."
+  },
+  {
+    "paragraph_index": 61,
+    "source": "Conventional arithmetic worksheets can test correctness but rarely sustain voluntary repetition. They also separate the calculation from a meaningful consequence. Math Rush 3D turns arithmetic into an immediate spatial decision: the player reads two expressions, steers towards one answer and sees the crowd change. The design must avoid becoming a guessing game, however. Symbols must remain legible on small screens, level generation must not create impossible encounters, and movement skill must reduce casualties without allowing all hazards to be ignored."
+  },
+  {
+    "paragraph_index": 85,
+    "source": "The design assumes an internet connection is available for account synchronisation, but the core run remains local and playable during an API outage. Render's free service may cold-start, so the first request can be slower than subsequent requests. The 3D scene is constrained by mobile GPU and memory limits, making instancing and bounded effects more important than photorealistic assets. The largest academic constraint is that the current Express API may not satisfy the brief's prescribed backend-language list; this must be resolved with the tutor before final submission."
+  },
+  {
+    "paragraph_index": 94,
+    "source": "The schema normalises identity, credentials, mutable progression, settings and repeatable run/event records. Foreign keys and cascading deletes protect referential integrity, while checks constrain counts, difficulty values, outcomes and score-related fields. A leaderboard view joins player identity with progress data. The design currently lacks roles, permissions, administrative audit records and feedback entities; these should be added without overloading the existing gameplay event tables."
+  },
+  {
+    "paragraph_index": 110,
+    "source": "The traceability matrix links each user requirement to the current implementation area and the evidence still needed. It prevents a feature from being treated as complete only because it appears on screen."
+  },
+  {
+    "paragraph_index": 118,
+    "source": "React components own the screen-level interface, while GameScene creates a level definition and passes it to specialised scene systems. GateManager, ObstacleManager and BossManager respond to the same generated values; CrowdRunner and CrowdRuntime maintain movement and formation state; FollowCamera tracks the action; GameTrack renders the route and finish. React Three Fiber permits these scene responsibilities to remain component-based while the per-frame loop operates on Three.js objects rather than rebuilding ordinary DOM elements (Poimandres, 2026)."
+  },
+  {
+    "paragraph_index": 119,
+    "source": "The Zustand store models phase, run stage, difficulty, selected level, profile, settings, rewards and event summaries. Long-lived preferences are persisted locally and reconciled with the authenticated profile. Position and animation data that change every frame are kept in refs and runtime objects to avoid excessive component rerendering. The crowd uses instanced drawing so many bodies can share geometry and material data."
+  },
+  {
+    "paragraph_index": 120,
+    "source": "Responsive behaviour includes touch dragging, mouse/keyboard steering, safe-area insets, capped device pixel ratio, a reduced-effects option and scrollable authentication content. Capacitor provides the native Android shell while preserving the same React application, consistent with its web-first runtime model (Ionic, 2026)."
+  },
+  {
+    "paragraph_index": 122,
+    "source": "Express exposes health, authentication, player, run and leaderboard routes. Request bodies and parameters are validated with Zod. Helmet configures common security headers, CORS restricts approved client origins, JSON bodies are limited and authentication endpoints are rate-limited. Passwords are hashed with bcrypt at cost 12. This meets OWASP's stated minimum bcrypt work factor of 10, although OWASP prefers Argon2id for new systems where available (OWASP Foundation, 2026a). Random session tokens are returned to the client but only SHA-256 token hashes are stored in the database, limiting direct reuse after a database leak."
+  },
+  {
+    "paragraph_index": 123,
+    "source": "Browser sessions use secure HTTP-only cookies in production, while the Android client uses a bearer token because WebView cookie behaviour differs across origins. Sessions expire after 30 days and can be invalidated. OWASP describes the session identifier as temporarily equivalent to the strongest authentication method, so HTTPS, secure storage, expiry, rotation and logout behaviour must be tested as security controls rather than treated as interface details (OWASP Foundation, 2026b)."
+  },
+  {
+    "paragraph_index": 124,
+    "source": "Compliance decision required: The assignment brief names PHP, Python or Java for the backend and allows Node.js only as middleware or API glue. The current Express service performs core business and persistence work. Obtain tutor approval in writing or migrate this layer before final submission."
+  },
+  {
+    "paragraph_index": 126,
+    "source": "Six ordered SQL migrations create the current schema. UUID and bigserial keys identify durable entities and events. Enumerated types constrain difficulty, run status and obstacle kinds. Check constraints prevent negative balances and invalid levels; foreign keys enforce ownership; indexes support player history and leaderboard ordering; triggers maintain updated timestamps; and a view exposes leaderboard data without duplicating it. The API uses a PostgreSQL connection pool capped at ten clients and parameterised queries rather than interpolating user input."
+  },
+  {
+    "paragraph_index": 127,
+    "source": "The current model satisfies substantial persistence needs, but it is not yet the complete database described by the assignment. A future migration should add roles, permissions or a role column, administrator audit actions, player feedback, content-management entities where appropriate and report-friendly indexes. Run events should remain gameplay analytics; administrative actions require a separate immutable audit trail with actor, action, target, timestamp and before/after metadata."
+  },
+  {
+    "paragraph_index": 129,
+    "source": "An Agile iterative lifecycle is the best fit because movement feel, crowd behaviour, arithmetic readability and level difficulty cannot be validated reliably from documentation alone. The Agile Manifesto prioritises working software, collaboration and responding to change while retaining value in processes and plans (Beck et al., 2001). The project uses those principles without claiming a complete formal Scrum implementation."
+  },
+  {
+    "paragraph_index": 136,
+    "source": "A practical two-week iteration can use a prioritised backlog, a defined acceptance condition, a short implementation period, automated checks, a device demonstration and a retrospective. Scrum's emphasis on inspection and adaptation supports this cadence, but roles and events should only be claimed if they were actually performed (Schwaber and Sutherland, 2020)."
+  },
+  {
+    "paragraph_index": 138,
+    "source": "Git tracks source changes and GitHub hosts the MathRush3D repository. Commits should describe one coherent change, and feature branches or pull requests should be used for risky work. Tags should identify submitted versions. Secrets such as DATABASE_URL must remain in deployment environment variables and must not be committed. GitHub Actions can automate build and test workflows and retain APK artifacts; GitHub describes Actions as a way to execute customised software-development workflows, including CI/CD (GitHub, 2026)."
+  },
+  {
+    "paragraph_index": 143,
+    "source": "The service should collect only the data required for authentication, progression and competitive results. Email addresses and password hashes must never be exposed through leaderboard responses. Session records should expire and stale sessions should be removable. The final system should document a retention period for inactive accounts and provide an account-deletion process that relies on the schema's cascading relationships."
+  },
+  {
+    "paragraph_index": 144,
+    "source": "The game does not currently include chat, advertising, payments or location tracking, which reduces safeguarding and privacy risk. Display names still require validation because they are visible to other players. Arithmetic difficulty should be presented as a game setting rather than a judgement of ability, and feedback should avoid humiliating language when a player loses."
+  },
+  {
+    "paragraph_index": 145,
+    "source": "External models and textures must retain source and licence records. The current project uses local attribution metadata for Kenney and Quaternius assets. Any replacement asset should be accepted only after its redistribution and commercial-use terms are verified."
+  },
+  {
+    "paragraph_index": 148,
+    "source": "Testing is layered so that fast deterministic checks catch rule regressions before slower device and user testing. Unit tests cover balance, crowd formation, level progression, speed progression and boss-meter results. TypeScript checks validate browser and server types. API integration tests should create a temporary account, authenticate, submit a run, retrieve progress and verify leaderboard ordering against a disposable database. End-to-end tests should then exercise registration, a complete level, pause/restart, next level and logout through the rendered interface."
+  },
+  {
+    "paragraph_index": 158,
+    "source": "At least two peers should test independently. One tester should focus on first-time usability and mathematical clarity; the other should focus on mobile controls, difficulty and defects. The student should not coach testers beyond the instructions visible in the product. Record the tester's consent, device, browser/app version, date, observations, severity and suggested improvement. Do not replace observed evidence with assumed feedback."
+  },
+  {
+    "paragraph_index": 163,
+    "source": "Performance claims should be supported by repeatable measurements rather than visual judgement. Each test must record the application version, device, operating system, browser or APK version, selected level, crowd size and reduced-effects setting."
+  },
+  {
+    "paragraph_index": 166,
+    "source": "Each failed check should become a backlog item with reproduction steps, expected and actual behaviour, device/build information, severity and supporting image or video. Feedback should be interpreted rather than copied directly into a change: repeated observations, task failure and high-severity defects outrank individual visual preferences. After a fix, the original check and relevant regression tests must be repeated. The final report should show at least one traceable chain from peer observation to decision, implementation, retest and evaluation."
+  },
+  {
+    "paragraph_index": 168,
+    "source": "This matrix compares the inspected project and this revised draft with the currently supplied brief. 'Partial' means that some evidence or functionality exists but the criterion should not yet be claimed as achieved."
+  },
+  {
+    "paragraph_index": 180,
+    "source": "Math Rush 3D already demonstrates a coherent, technically ambitious application: a React-based 3D game, a persistent PostgreSQL data model, secure account handling, responsive Android delivery and automated rule checks. Its strongest design decision is the use of a single generated level definition and shared reward rules to reduce disagreement between gameplay systems and stored outcomes. The clearest weaknesses are academic compliance around the backend language, missing role-based administration and the absence of completed peer/evaluation evidence."
+  },
+  {
+    "paragraph_index": 181,
+    "source": "This revised draft fulfils the topics explicitly listed in the currently supplied project guideline: executive summary, SDD, problem and stakeholder analysis, requirements, measurable success criteria, risk review, use-case/ER/architecture/DFD/flow/wireframe designs, requirement traceability, software choices and alternatives, frontend/backend/database discussion, methodology, version control, ethics, performance evaluation and a peer UAT plan. It should be extended rather than treated as final. The student must add their details, verify every statement, incorporate the remaining tutor guideline, perform peer testing and update the evaluation before submission."
+  }
+]

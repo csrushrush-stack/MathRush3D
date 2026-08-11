@@ -1,0 +1,168 @@
+{
+  "input": "C:\\Users\\Acer\\Documents\\MathsRush3D\\deliverables\\Math_Rush_3D_Application_Development_Report_FINAL_SUBMISSION.docx",
+  "fonts_by_char_count": {},
+  "direct_run_formatting_runs": 107,
+  "direct_paragraph_formatting_paragraphs": 568,
+  "heading_like_paragraphs_not_heading_style": [
+    {
+      "para_index": 240,
+      "text": "Version",
+      "style": "Normal"
+    },
+    {
+      "para_index": 241,
+      "text": "Date",
+      "style": "Normal"
+    },
+    {
+      "para_index": 242,
+      "text": "Purpose",
+      "style": "Normal"
+    },
+    {
+      "para_index": 243,
+      "text": "Status",
+      "style": "Normal"
+    },
+    {
+      "para_index": 256,
+      "text": "Measure",
+      "style": "Normal"
+    },
+    {
+      "para_index": 257,
+      "text": "Target",
+      "style": "Normal"
+    },
+    {
+      "para_index": 258,
+      "text": "Evidence method",
+      "style": "Normal"
+    },
+    {
+      "para_index": 277,
+      "text": "Stakeholder",
+      "style": "Normal"
+    },
+    {
+      "para_index": 278,
+      "text": "Need or interest",
+      "style": "Normal"
+    },
+    {
+      "para_index": 279,
+      "text": "Influence",
+      "style": "Normal"
+    },
+    {
+      "para_index": 280,
+      "text": "Design response",
+      "style": "Normal"
+    },
+    {
+      "para_index": 305,
+      "text": "ID",
+      "style": "Normal"
+    },
+    {
+      "para_index": 306,
+      "text": "Requirement",
+      "style": "Normal"
+    },
+    {
+      "para_index": 307,
+      "text": "Acceptance measure",
+      "style": "Normal"
+    },
+    {
+      "para_index": 308,
+      "text": "Status",
+      "style": "Normal"
+    },
+    {
+      "para_index": 349,
+      "text": "Risk",
+      "style": "Normal"
+    },
+    {
+      "para_index": 350,
+      "text": "Likelihood",
+      "style": "Normal"
+    },
+    {
+      "para_index": 351,
+      "text": "Impact",
+      "style": "Normal"
+    },
+    {
+      "para_index": 352,
+      "text": "Mitigation / contingency",
+      "style": "Normal"
+    },
+    {
+      "para_index": 353,
+      "text": "Owner",
+      "style": "Normal"
+    }
+  ],
+  "examples": {
+    "direct_paragraph_formatting": [
+      {
+        "para_index": 1,
+        "text": "",
+        "style": "Normal"
+      },
+      {
+        "para_index": 2,
+        "text": "UNIT 22: APPLICATION DEVELOPMENT",
+        "style": "Normal"
+      },
+      {
+        "para_index": 3,
+        "text": "(MATH RUSH 3D REPORT)",
+        "style": "Normal"
+      },
+      {
+        "para_index": 4,
+        "text": "VINCENT ESCANDALLO CASTILLO",
+        "style": "Normal"
+      },
+      {
+        "para_index": 5,
+        "text": "TJ55730",
+        "style": "Normal"
+      }
+    ],
+    "direct_run_formatting": [
+      {
+        "para_index": 2,
+        "run_text": "UNIT 22: APPLICATION DEVELOPMENT",
+        "style": "Normal"
+      },
+      {
+        "para_index": 3,
+        "run_text": "(MATH RUSH 3D REPORT)",
+        "style": "Normal"
+      },
+      {
+        "para_index": 4,
+        "run_text": "VINCENT ESCANDALLO CASTILLO",
+        "style": "Normal"
+      },
+      {
+        "para_index": 5,
+        "run_text": "TJ55730",
+        "style": "Normal"
+      },
+      {
+        "para_index": 6,
+        "run_text": "REPORT SUBMITTED FOR THE",
+        "style": "Normal"
+      }
+    ]
+  },
+  "notes": [
+    "Direct formatting is not always wrong, but it often causes inconsistent output when templates change.",
+    "Heading-like paragraphs not using Heading styles can break TOC and accessibility."
+  ]
+}
