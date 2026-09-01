@@ -3,6 +3,7 @@ import { useGameStore } from './store/useGameStore'
 import { HomeScreen }   from './screens/HomeScreen'
 import { GameScreen }   from './screens/GameScreen'
 import { AuthScreen } from './screens/AuthScreen'
+import { DownloadPage } from './screens/DownloadPage'
 import { useEffect, useState } from 'react'
 import { bootstrapPlayer, logoutAccount } from './services/api'
 import { audioManager } from './utils/audioManager'
@@ -25,6 +26,7 @@ import { audioManager } from './utils/audioManager'
  * This prevents ghost-state from a previous run bleeding into the new one.
  */
 function App() {
+  const isDownloadPage = window.location.pathname === '/download' || window.location.pathname === '/download/'
   const [authState, setAuthState] = useState<'checking' | 'authenticated' | 'unauthenticated'>('checking')
   const phase   = useGameStore((s) => s.phase)
   const gameKey = useGameStore((s) => s.gameKey)
@@ -32,14 +34,17 @@ function App() {
   const isGame  = phase === 'playing' || phase === 'paused' || phase === 'gameover' || phase === 'win'
 
   useEffect(() => {
+    if (isDownloadPage) return
     void bootstrapPlayer().then((authenticated) => {
       setAuthState(authenticated ? 'authenticated' : 'unauthenticated')
     })
-  }, [])
+  }, [isDownloadPage])
 
   useEffect(() => {
     audioManager.setEnabled(soundEffects)
   }, [soundEffects])
+
+  if (isDownloadPage) return <DownloadPage />
 
   return (
     <div className="w-full h-full">

@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#071329" />
+    <title>Download Math Rush 3D</title>
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        min-height: 100vh;
+        min-height: 100dvh;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        color: #f8fafc;
+        background:
+          radial-gradient(circle at 18% 12%, rgba(34, 211, 238, .22), transparent 30%),
+          radial-gradient(circle at 82% 84%, rgba(139, 92, 246, .28), transparent 34%),
+          linear-gradient(150deg, #050b1b, #0b1640 48%, #180b38);
+        font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      }
+      main {
+        width: min(100%, 940px);
+        display: grid;
+        grid-template-columns: minmax(0, 1.15fr) minmax(250px, .85fr);
+        overflow: hidden;
+        border: 1px solid rgba(125, 211, 252, .22);
+        border-radius: 30px;
+        background: rgba(15, 23, 42, .88);
+        box-shadow: 0 30px 90px rgba(0, 0, 0, .5);
+        backdrop-filter: blur(20px);
+      }
+      .content { padding: clamp(28px, 6vw, 60px); }
+      .eyebrow { color: #67e8f9; font-size: 12px; font-weight: 900; letter-spacing: .18em; }
+      h1 { margin: 10px 0 14px; font-size: clamp(42px, 8vw, 72px); line-height: .95; letter-spacing: -.055em; }
+      h1 span { color: #fbbf24; }
+      .intro { max-width: 540px; color: #bfdbfe; font-size: 17px; line-height: 1.55; }
+      .actions { display: grid; gap: 13px; margin: 30px 0 23px; }
+      .button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 54px;
+        padding: 14px 20px;
+        border-radius: 15px;
+        color: #fff;
+        text-decoration: none;
+        font-weight: 900;
+        text-align: center;
+      }
+      .button.primary { background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 7px 0 #064e3b; }
+      .button.secondary { border: 1px solid rgba(125, 211, 252, .4); background: rgba(37, 99, 235, .2); }
+      .button:hover { filter: brightness(1.1); transform: translateY(-1px); }
+      .details { display: grid; gap: 9px; color: #94a3b8; font-size: 13px; line-height: 1.45; }
+      .details strong { color: #e2e8f0; }
+      .install {
+        margin-top: 22px;
+        padding: 17px 18px;
+        border-radius: 16px;
+        border: 1px solid rgba(251, 191, 36, .25);
+        color: #fde68a;
+        background: rgba(120, 53, 15, .2);
+        font-size: 13px;
+        line-height: 1.5;
+      }
+      .qr-panel {
+        display: grid;
+        place-items: center;
+        align-content: center;
+        gap: 18px;
+        padding: 42px 30px;
+        text-align: center;
+        background: linear-gradient(165deg, rgba(30, 41, 59, .8), rgba(30, 27, 75, .82));
+      }
+      .qr-frame { padding: 16px; border-radius: 22px; background: #fff; box-shadow: 0 20px 50px rgba(0, 0, 0, .35); }
+      .qr-frame img { display: block; width: min(230px, 58vw); height: auto; }
+      .qr-panel h2 { font-size: 22px; }
+      .qr-panel p { max-width: 270px; color: #cbd5e1; font-size: 14px; line-height: 1.45; }
+      .checksum { overflow-wrap: anywhere; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 10px; color: #64748b; }
+      @media (max-width: 720px) {
+        body { padding: 0; }
+        main { min-height: 100dvh; grid-template-columns: 1fr; border: 0; border-radius: 0; }
+        .content { order: 1; }
+        .qr-panel { order: 2; padding: 32px 24px 42px; }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="content">
+        <p class="eyebrow">FINAL-YEAR STUDENT PROJECT</p>
+        <h1>Math Rush <span>3D</span></h1>
+        <p class="intro">Choose arithmetic gates, grow your crowd and race toward the final challenge. Download the Android build or play directly in your mobile browser.</p>
+
+        <div class="actions">
+          <a class="button primary" href="/downloads/MathRush3D-v1.2.0.apk" download>Download for Android</a>
+          <a class="button secondary" href="/">Play in browser</a>
+        </div>
+
+        <div class="details">
+          <p><strong>Version:</strong> 1.2.0</p>
+          <p><strong>File size:</strong> approximately 4.5 MB</p>
+          <p><strong>Platform:</strong> Android APK. iPhone and iPad users should select Play in browser.</p>
+          <p>This is a student-project build distributed outside the Google Play Store.</p>
+        </div>
+
+        <p class="install"><strong>Android installation:</strong> After downloading, open the APK. Your phone may ask you to allow installation from your browser or Files app. Only continue if you downloaded it from this official Math Rush 3D page.</p>
+        <p class="checksum">SHA-256: 7D06F0B7693A89CAA377808D9050F05606C9211F577FB41095369C067F89234C</p>
+      </section>
+
+      <aside class="qr-panel">
+        <div class="qr-frame">
+          <img src="/download/mathrush3d-download-qr.png" alt="QR code for the Math Rush 3D mobile download page" />
+        </div>
+        <h2>Scan to open on mobile</h2>
+        <p>The QR code opens this download page, so future Android builds can use the same address.</p>
+      </aside>
+    </main>
+  </body>
+</html>
