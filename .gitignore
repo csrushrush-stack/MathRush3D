@@ -1,4 +1,4 @@
-# Logs
+﻿# Logs
 logs
 *.log
 npm-debug.log*
@@ -8,6 +8,10 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
+.venv
+__pycache__/
+.pytest_cache/
+*.py[cod]
 dist
 dist-ssr
 *.local
@@ -25,3 +29,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+
+# Package manager stores
+.pnpm-store/

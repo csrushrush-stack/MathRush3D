@@ -1,28 +1,28 @@
 # PostgreSQL persistence
 
-The database uses ordered SQL migrations in `server/db/migrations`. Migrations
-are recorded in `schema_migrations` and applied transactionally.
+PostgreSQL stores player and account data, progression, runs, feedback and admin
+records. Ordered SQL migrations in `database/migrations` are recorded in
+`schema_migrations` and applied transactionally by the active Python service.
 
-## Local PostgreSQL / pgAdmin setup
+## Local PostgreSQL setup
 
-1. In pgAdmin, create a database named `math_rush` (UTF-8, default owner).
-2. Copy `.env.example` to `.env` and put the local connection string in
-   `DATABASE_URL`. The real password stays only in `.env`.
-3. Run `npm run db:migrate` from the project folder.
+The supplied Docker Compose service runs PostgreSQL 17. It creates the
+`math_rush` database and publishes port `5433` on the host. If a local `.env`
+does not already exist, copy `.env.example` to `.env`, then run
+`docker compose up -d postgres` and `npm run db:migrate`. The Python runner
+applies each pending SQL migration once and records it in `schema_migrations`.
 
-For a fully manual pgAdmin setup, connect the Query Tool to `math_rush`, open
-and execute these SQL scripts in order:
-
-1. `server/db/migrations/001_initial.sql`
-2. `server/db/migrations/002_player_progress.sql`
-
-Both scripts are idempotent enough for setup and the migration runner guarantees
-that each version is recorded exactly once. Do not run the second script before
-the first.
+For a separately installed PostgreSQL server, create a database and set
+`DATABASE_URL` to its connection string. The game API connects directly to
+PostgreSQL through Python's `psycopg` driver. pgAdmin is optional for visual
+database inspection; it is not part of the application runtime. Prefer the
+migration command over running SQL files manually.
 
 ## Main tables
 
 - `players`: anonymous device identity, display name, and selected skin.
+- `player_accounts`: email, password hash and account active state.
+- `roles` / `player_roles`: database-backed player and administrator permissions.
 - `player_progress`: coins, stars, best score, selected difficulty, and lifetime aggregates.
 - `player_settings`: audio, vibration, notifications, and reduced-effects preferences.
 - `skins` / `player_skins`: cosmetic catalog and ownership.
@@ -31,10 +31,15 @@ the first.
 - `obstacle_events`: every hit/dodge/defeat and crowd transition.
 - `achievements` / `player_achievements`: catalog, progress, and unlock times.
 - `leaderboard`: ranked player summary view.
+- `player_feedback`: user-submitted suggestions and problems with review status.
+- `audit_log`: administrator changes with actor, action and affected record.
+- `schema_migrations`: migration names and applied timestamps.
 
 ## API
 
 - `GET /api/health`
+- `POST /api/auth/register`, `POST /api/auth/login`, `GET /api/auth/me`, `POST /api/auth/logout`
+- `POST /api/auth/forgot-password`, `POST /api/auth/reset-password`
 - `POST /api/players/session`
 - `GET /api/players/:playerId/stats`
 - `PATCH /api/players/:playerId/settings`
@@ -42,6 +47,8 @@ the first.
 - `POST /api/players/:playerId/skins/:skinId/purchase`
 - `POST /api/runs`
 - `GET /api/leaderboard?difficulty=easy|medium|hard|expert`
+- `GET /api/skins`, `POST /api/feedback`
+- Role-protected `/api/admin/summary`, `/players`, `/runs`, `/skins`, `/feedback`, `/audit`, and role-management routes.
 
 Run uploads use a unique `client_run_id`, so retrying an offline upload does not
 duplicate rewards or statistics. The API recomputes score and coins using the
@@ -49,7 +56,9 @@ same shared rule module as the browser instead of trusting client reward totals.
 
 ## Production notes
 
-The anonymous device ID is appropriate for a prototype. Before public launch,
-add authenticated accounts, request rate limits, server-generated/signed level
-seeds, and stronger run validation to prevent leaderboard cheating. Use TLS and
-set `DATABASE_SSL=true` when required by the production database provider.
+The active API validates requests, applies rate limits to authentication and
+password-reset attempts, recalculates run rewards and stores administrator
+roles in PostgreSQL. Configure HTTPS and set `DATABASE_SSL=true` when required
+by the production database provider. The first admin role is granted to an
+existing registered account using `python -m backend.app.cli promote-admin
+your-account@example.com`; later role changes are audited.

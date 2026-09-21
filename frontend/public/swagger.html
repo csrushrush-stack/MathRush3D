@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Interactive API reference for Math Rush 3D." />
+    <title>Math Rush 3D API | Swagger UI</title>
+    <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css" />
+    <style>
+      :root { color-scheme: light; }
+      body { margin: 0; background: #f5f7fa; font-family: Arial, sans-serif; }
+      header { padding: 18px 24px; background: #111827; color: #fff; }
+      header h1 { margin: 0 0 6px; font-size: 21px; }
+      header p { margin: 0; color: #cbd5e1; font-size: 14px; }
+      #swagger-ui { max-width: 1320px; margin: 0 auto; }
+      .swagger-ui .topbar { display: none; }
+      .swagger-ui .information-container { margin-top: 12px; }
+      .swagger-ui .scheme-container { box-shadow: none; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Math Rush 3D API</h1>
+      <p>Interactive API reference loaded from the running FastAPI service.</p>
+    </header>
+    <div id="swagger-ui"></div>
+    <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js" crossorigin></script>
+    <script>
+      const apiUrl = `${window.location.protocol}//${window.location.hostname}:3001/openapi.json`
+      SwaggerUIBundle({
+        url: apiUrl,
+        dom_id: '#swagger-ui',
+        deepLinking: true,
+        displayRequestDuration: true,
+        persistAuthorization: true,
+        requestInterceptor: (request) => {
+          request.credentials = 'include'
+          return request
+        }
+      })
+    </script>
+  </body>
+</html>
