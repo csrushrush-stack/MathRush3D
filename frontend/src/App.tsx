@@ -47,6 +47,15 @@ function App() {
     audioManager.setEnabled(soundEffects)
   }, [soundEffects])
 
+  // Development-only telemetry hook: exposes the live store instance that this
+  // component graph actually uses, for the automated playthrough driver.
+  // Stripped from production builds by the import.meta.env.DEV guard.
+  useEffect(() => {
+    if (import.meta.env.DEV) {
+      ;(window as unknown as Record<string, unknown>).__mrState = () => useGameStore.getState()
+    }
+  }, [])
+
   if (isDownloadPage) return <Suspense fallback={<div className="auth-loading">Loading download page…</div>}><DownloadPage /></Suspense>
 
   return (
