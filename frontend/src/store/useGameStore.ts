@@ -415,3 +415,10 @@ export const useGameStore = create<GameState>()(
     },
   ),
 )
+
+// Development-only telemetry hook: lets the automated playthrough driver read
+// live run state from the same store instance the app uses. Stripped from
+// production builds by the import.meta.env.DEV guard.
+if (import.meta.env.DEV && typeof window !== 'undefined') {
+  (window as unknown as Record<string, unknown>).__mrState = () => useGameStore.getState()
+}
