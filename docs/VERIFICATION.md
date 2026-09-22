@@ -65,3 +65,27 @@ See issue #1 for the open verification items: hosted deployment, production
 password-reset email, human peer-acceptance sessions, physical-device
 performance measurement, offline/second-client manual checks and formal
 accessibility and security reviews.
+
+## Additional checks (21 September 2026, evening)
+
+- Accessibility: an axe-core scan of the authentication, home and gameplay
+  screens using the WCAG 2.0 and 2.1 A and AA rule sets reported one violation
+  (a viewport meta tag that disabled zooming, WCAG 1.4.4). The tag was fixed in
+  pull request #4 and a repeat scan reports zero violations. Gameplay gestures
+  remain protected by the existing touch-action rule.
+- Second-client restoration: an account registered in one browser context and
+  logged in from an independent context returned the identical player id,
+  display name and coin balance in both sessions.
+- Playthrough campaign: all twenty published levels (four difficulties, five
+  levels each) were won by the scripted driver using the shipped optimal
+  routes; the observed boss health matched the computed value in every level,
+  and the frame-rate sampler averaged 138-142 FPS in a desktop browser with
+  the reduced-effects configuration (not a physical-device measurement).
+- Repository workflow: issue #1 tracks open items; pull requests #2 (this
+  document), #3 (development-only telemetry hook) and #4 (accessibility fix)
+  were reviewed and merged.
+
+A ready-to-run human peer-session task sheet accompanies the assignment
+evidence; human peer sessions, physical-device performance, hosted deployment,
+production email delivery, offline manual checks and formal security review
+remain open in issue #1.
